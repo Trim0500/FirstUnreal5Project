@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+//#include "Components/BoxComponent.h"
 #include "CharacterPawn.generated.h"
 
 UCLASS()
@@ -13,10 +14,22 @@ class FIRSTUNREAL5PROJECT_API ACharacterPawn : public APawn
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
-		float _moveScale;
+	float MoveScale;
 
+	/*
+	* [PC-02]: TODO: Remove variable.
+	*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
-		float _jumpScale;
+	float JumpScale;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
+	float JumpAcceleration;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
+	float InitJumpVelocity;
+
+	/*UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Player Collission")
+	UBoxComponent* Feet;*/
 
 	// Sets default values for this pawn's properties
 	ACharacterPawn();
@@ -24,6 +37,11 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+private:
+	float _currentJumpVelocity;
+
+	bool _isJumping;
 
 public:	
 	// Called every frame
@@ -34,5 +52,8 @@ public:
 	void MovePawnVertically(float);
 
 	void JumpPawn();
+
+	/*UFUNCTION()
+	void OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);*/
 
 };
