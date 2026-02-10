@@ -29,15 +29,6 @@ void APlayerCharacterController::SetupInputComponent()
 		EnhancedInputComponenet->BindAction(IA_MoveHorizontal, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedMoveHorizontal);
 		EnhancedInputComponenet->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedJump);
 	}
-
-	/*UE_LOG(LogTemp, Warning, TEXT("Trying to find camera..."));
-
-	auto PlayerCamera = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("CameraSwivel"));
-	if (PlayerCamera.Num() > 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Found it, setting to current view target"));
-		this->SetViewTarget(Cast<AActor>(PlayerCamera[0]));
-	}*/
 }
 
 void APlayerCharacterController::EnhancedMoveHorizontal(const FInputActionValue& value)
@@ -86,6 +77,9 @@ void APlayerCharacterController::EnhancedJump(const FInputActionValue& value)
 {
 	if (value.GetValueType() == EInputActionValueType::Boolean)
 	{
+		/*
+		* [PC-02]: TODO: Add a check for IsJumpAvailable before calling Jump() and if available, call Jump() and set IsJumpAvailable to false.
+		*/
 		Jump();
 	}
 }

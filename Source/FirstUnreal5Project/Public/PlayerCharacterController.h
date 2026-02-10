@@ -29,6 +29,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Context")
 	TSoftObjectPtr<UInputMappingContext> InputMapping;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Context")
+	bool IsJumpAvailable;
 
 	// Called to bind functionality to input
 	virtual void SetupInputComponent() override;
