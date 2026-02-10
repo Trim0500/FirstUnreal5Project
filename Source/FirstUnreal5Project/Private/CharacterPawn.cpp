@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "CharacterPawn.h"
+#include "PlayerCharacterController.h"
 
 // Sets default values
 ACharacterPawn::ACharacterPawn()
@@ -21,6 +22,9 @@ void ACharacterPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
+	/*
+	* NOTE: Unsure how to set up the collision component to detect collision with the ground. Will need to research this further.
+	*/
 	/*if (Feet)
 	{
 		Feet->OnComponentBeginOverlap.AddDynamic(this, &ACharacterPawn::OnFeetOverlapBegin);
@@ -36,6 +40,10 @@ void ACharacterPawn::Tick(float DeltaTime)
 	* [PC-02]: TODO: Add logic to handle jumping.
 	*			Handling the logic should be done via a function ( AddJumpToZ ) that passes over current velocity and acceleration values.
 	*/
+	if (_isJumping)
+	{
+		ApplyJumpToZ(_currentJumpVelocity, JumpAcceleration, DeltaTime);
+	}
 
 	/*
 	* [PC-02]: TODO: Add logic to detect when _currentJumpVelocity is negative.
@@ -43,6 +51,18 @@ void ACharacterPawn::Tick(float DeltaTime)
 	*					to InitJumpVelocity.
 	*					Should try to find the component by using GetComponentsByTag and searching for a component with tag "GroundDetector".
 	*/
+	if (_currentJumpVelocity <= 0)
+	{
+		/*
+		* NOTE: Unsure how to set up the collision component to detect collision with the ground.Will need to research this further.
+		*		For now, will just reset the jump values to allow for infinite jumping.
+		*/
+		_isJumping = false;
+
+		_currentJumpVelocity = InitJumpVelocity;
+
+		Cast<APlayerCharacterController>(GetController())->IsJumpAvailable = true;
+	}
 
 	FVector PotentialMovementVector = ConsumeMovementInputVector();
 	if (PotentialMovementVector.X != 0 || PotentialMovementVector.Y != 0 || PotentialMovementVector.Z != 0)
@@ -99,7 +119,7 @@ void ACharacterPawn::Tick(float DeltaTime)
 		* [PC-02]: TODO: Remove change in Z axis through multiplying the Z value of the PotentialMovementVector by JumpScale and
 							adding it to the current Z value of the NewMovementVector.
 		*/
-		NewMovementVector.Z += PotentialMovementVector.Z * JumpScale;
+		NewMovementVector.Z += PotentialMovementVector.Z;
 		SetActorLocation(NewMovementVector);
 	}
 }
@@ -135,15 +155,31 @@ void ACharacterPawn::MovePawnVertically(float _inputVector)
 *					Should only apply movement to Z axis.
 *					Update _currentJumpVelocity by adding the acceleration value.
 */
+void ACharacterPawn::ApplyJumpToZ(float currentJumpVelocity, float acceleration, float deltaTime)
+{
+	auto currentActorZValue = GetActorLocation().Z;
+	currentActorZValue += (currentJumpVelocity * deltaTime) + (0.5f * acceleration * (FMath::Square(deltaTime)));
+	
+	currentJumpVelocity += acceleration * deltaTime;
+
+	AddMovementInput(GetActorUpVector(), currentActorZValue);
+
+	_currentJumpVelocity = currentJumpVelocity;
+}
 
 void ACharacterPawn::JumpPawn()
 {
 	/*
 	* [PC-02]: TODO: Change functionality to simply set _isJumping to true and set _currentJumpVelocity to InitJumpVelocity.
 	*/
-	AddMovementInput(GetActorUpVector(), JumpScale);
+	_isJumping = true;
+
+	_currentJumpVelocity = InitJumpVelocity;
 }
 
+/*
+* NOTE: Unsure how to set up the collision component to detect collision with the ground. Will need to research this further.
+*/
 //void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 //{
 //

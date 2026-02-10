@@ -80,7 +80,12 @@ void APlayerCharacterController::EnhancedJump(const FInputActionValue& value)
 		/*
 		* [PC-02]: TODO: Add a check for IsJumpAvailable before calling Jump() and if available, call Jump() and set IsJumpAvailable to false.
 		*/
-		Jump();
+		if (IsJumpAvailable)
+		{
+			IsJumpAvailable = false;
+
+			Jump();
+		}
 	}
 }
 

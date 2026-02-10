@@ -16,12 +16,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
 	float MoveScale;
 
-	/*
-	* [PC-02]: TODO: Remove variable.
-	*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
-	float JumpScale;
-	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
 	float JumpAcceleration;
 	
@@ -53,6 +47,11 @@ public:
 
 	void JumpPawn();
 
+	void ApplyJumpToZ(float, float, float);
+
+	/*
+	* NOTE: Unsure how to set up the collision component to detect collision with the ground. Will need to research this further.
+	*/
 	/*UFUNCTION()
 	void OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);*/
 
