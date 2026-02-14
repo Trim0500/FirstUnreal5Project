@@ -16,10 +16,10 @@ public:
 	float MoveScale;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
-	float JumpGravity;
-	
+	float PeakJumpHeight;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
-	float JumpVelocity;
+	float TimeToPeakJump;
 
 	/*UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Player Collission")
 	UBoxComponent* Feet;*/
@@ -50,6 +50,10 @@ public:
 	void OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);*/
 
 private:
+	float JumpGravity;
+
+	float JumpVelocity;
+
 	bool bIsJumping;
 
 	float JumpElapsedTime;

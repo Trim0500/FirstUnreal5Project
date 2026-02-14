@@ -29,6 +29,10 @@ void ACharacterPawn::BeginPlay()
 	{
 		Feet->OnComponentBeginOverlap.AddDynamic(this, &ACharacterPawn::OnFeetOverlapBegin);
 	}*/
+
+	JumpGravity = (-2 * PeakJumpHeight) / FMath::Square(TimeToPeakJump);
+
+	JumpVelocity = (2 * PeakJumpHeight) / TimeToPeakJump;
 }
 
 // Called every frame
@@ -39,10 +43,10 @@ void ACharacterPawn::Tick(float DeltaTime)
 	if (bIsJumping)
 	{
 		JumpElapsedTime += DeltaTime;
-		ApplyJumpToZ(JumpVelocity, JumpGravity, JumpElapsedTime);
+		ApplyJumpToZ(JumpGravity, JumpVelocity, JumpElapsedTime);
 	}
 
-	if (JumpElapsedTime >= 0.45)
+	if (JumpElapsedTime >= (TimeToPeakJump * 2) - 0.01)
 	{
 		/*
 		* NOTE: Unsure how to set up the collision component to detect collision with the ground. Will need to research this further.
@@ -141,9 +145,9 @@ void ACharacterPawn::MovePawnVertically(float InputVector)
 	}
 }
 
-void ACharacterPawn::ApplyJumpToZ(float Velocity, float Gravity, float Time)
+void ACharacterPawn::ApplyJumpToZ(float Gravity, float Velocity, float Time)
 {
-	auto newActorHeight = JumpStartZ + (Velocity * Time) + (0.5f * Gravity * (FMath::Square(Time)));
+	auto newActorHeight = (0.5f * Gravity * (FMath::Square(Time))) + (Velocity * Time) + JumpStartZ;
 	AddMovementInput(GetActorUpVector(), newActorHeight);
 }
 
