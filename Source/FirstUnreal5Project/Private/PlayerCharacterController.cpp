@@ -77,9 +77,6 @@ void APlayerCharacterController::EnhancedJump(const FInputActionValue& value)
 {
 	if (value.GetValueType() == EInputActionValueType::Boolean)
 	{
-		/*
-		* [PC-02]: TODO: Add a check for IsJumpAvailable before calling Jump() and if available, call Jump() and set IsJumpAvailable to false.
-		*/
 		if (IsJumpAvailable)
 		{
 			IsJumpAvailable = false;

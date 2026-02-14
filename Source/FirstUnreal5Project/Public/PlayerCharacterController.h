@@ -30,7 +30,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Context")
 	TSoftObjectPtr<UInputMappingContext> InputMapping;
 	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Context")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Flags")
 	bool IsJumpAvailable;
 
 	// Called to bind functionality to input

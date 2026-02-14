@@ -36,30 +36,26 @@ void ACharacterPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	/*
-	* [PC-02]: TODO: Add logic to handle jumping.
-	*			Handling the logic should be done via a function ( AddJumpToZ ) that passes over current velocity and acceleration values.
-	*/
-	if (_isJumping)
+	if (bIsJumping)
 	{
-		ApplyJumpToZ(_currentJumpVelocity, JumpAcceleration, DeltaTime);
+		JumpElapsedTime += DeltaTime;
+		ApplyJumpToZ(JumpVelocity, JumpGravity, JumpElapsedTime);
 	}
 
-	/*
-	* [PC-02]: TODO: Add logic to detect when _currentJumpVelocity is negative.
-	*					If check passes, activate a component that detects collision with the ground and resets _isJumping to false and _currentJumpVelocity
-	*					to InitJumpVelocity.
-	*					Should try to find the component by using GetComponentsByTag and searching for a component with tag "GroundDetector".
-	*/
-	if (_currentJumpVelocity <= 0)
+	if (JumpElapsedTime >= 0.45)
 	{
 		/*
-		* NOTE: Unsure how to set up the collision component to detect collision with the ground.Will need to research this further.
-		*		For now, will just reset the jump values to allow for infinite jumping.
+		* NOTE: Unsure how to set up the collision component to detect collision with the ground. Will need to research this further.
+		*		For now, will base jump reset on timer based on expected jump duration. Will need to adjust this value based on testing and how it feels in game.
 		*/
-		_isJumping = false;
 
-		_currentJumpVelocity = InitJumpVelocity;
+		JumpStartZ = 0.0f;
+
+		EnableGravity(true);
+
+		JumpElapsedTime = 0.0f;
+
+		bIsJumping = false;
 
 		Cast<APlayerCharacterController>(GetController())->IsJumpAvailable = true;
 	}
@@ -115,66 +111,51 @@ void ACharacterPawn::Tick(float DeltaTime)
 		FVector NewMovementVector = GetActorLocation();
 		NewMovementVector.X += PotentialMovementVector.X * MoveScale;
 		NewMovementVector.Y += PotentialMovementVector.Y * MoveScale;
-		/*
-		* [PC-02]: TODO: Remove change in Z axis through multiplying the Z value of the PotentialMovementVector by JumpScale and
-							adding it to the current Z value of the NewMovementVector.
-		*/
-		NewMovementVector.Z += PotentialMovementVector.Z;
+		if (bIsJumping)
+		{
+			NewMovementVector.Z = PotentialMovementVector.Z;
+		}
 		SetActorLocation(NewMovementVector);
 	}
 }
 
-void ACharacterPawn::MovePawnHorizontally(float _inputVector)
+void ACharacterPawn::MovePawnHorizontally(float InputVector)
 {
-	_inputVector = FMath::Clamp(_inputVector, -1.0f, 1.0f);
+	InputVector = FMath::Clamp(InputVector, -1.0f, 1.0f);
 	auto PlayerCamera = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("CameraSwivel"));
 	if (PlayerCamera.Num() > 0)
 	{
 		auto CameraRightVector = Cast<UStaticMeshComponent>(PlayerCamera[0])->GetRightVector();
-		AddMovementInput(CameraRightVector, MoveScale * _inputVector);
+		AddMovementInput(CameraRightVector, MoveScale * InputVector);
 	}
 }
 
-void ACharacterPawn::MovePawnVertically(float _inputVector)
+void ACharacterPawn::MovePawnVertically(float InputVector)
 {
-	_inputVector = FMath::Clamp(_inputVector, -1.0f, 1.0f);
+	InputVector = FMath::Clamp(InputVector, -1.0f, 1.0f);
 	auto PlayerCamera = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("CameraSwivel"));
 	if (PlayerCamera.Num() > 0)
 	{
 		auto CameraForwardVector = Cast<UStaticMeshComponent>(PlayerCamera[0])->GetForwardVector();
-		AddMovementInput(CameraForwardVector, MoveScale * _inputVector);
+		AddMovementInput(CameraForwardVector, MoveScale * InputVector);
 	}
 }
 
-/*
-* [PC-02]: TODO: Add in function AddJumpToZ.
-*					Params: currentJumpVelocity ( float )
-*							acceleration ( float )
-* 					Return: void
-*					Void function that uses AddMovementInput to apply the movement vector to the character.
-*					Should only apply movement to Z axis.
-*					Update _currentJumpVelocity by adding the acceleration value.
-*/
-void ACharacterPawn::ApplyJumpToZ(float currentJumpVelocity, float acceleration, float deltaTime)
+void ACharacterPawn::ApplyJumpToZ(float Velocity, float Gravity, float Time)
 {
-	auto currentActorZValue = GetActorLocation().Z;
-	currentActorZValue += (currentJumpVelocity * deltaTime) + (0.5f * acceleration * (FMath::Square(deltaTime)));
-	
-	currentJumpVelocity += acceleration * deltaTime;
-
-	AddMovementInput(GetActorUpVector(), currentActorZValue);
-
-	_currentJumpVelocity = currentJumpVelocity;
+	auto newActorHeight = JumpStartZ + (Velocity * Time) + (0.5f * Gravity * (FMath::Square(Time)));
+	AddMovementInput(GetActorUpVector(), newActorHeight);
 }
 
 void ACharacterPawn::JumpPawn()
 {
-	/*
-	* [PC-02]: TODO: Change functionality to simply set _isJumping to true and set _currentJumpVelocity to InitJumpVelocity.
-	*/
-	_isJumping = true;
+	bIsJumping = true;
 
-	_currentJumpVelocity = InitJumpVelocity;
+	JumpElapsedTime = 0.0f;
+
+	EnableGravity(false);
+
+	JumpStartZ = GetActorLocation().Z;
 }
 
 /*
@@ -184,3 +165,12 @@ void ACharacterPawn::JumpPawn()
 //{
 //
 //}
+
+void ACharacterPawn::EnableGravity(bool bEnable)
+{
+	auto rootComponent = RootComponent;
+	if (auto rootPrimitive = Cast<UPrimitiveComponent>(rootComponent))
+	{
+		rootPrimitive->SetEnableGravity(bEnable);
+	}
+}
