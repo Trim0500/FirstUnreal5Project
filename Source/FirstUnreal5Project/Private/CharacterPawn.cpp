@@ -61,7 +61,7 @@ void ACharacterPawn::Tick(float DeltaTime)
 
 		bIsJumping = false;
 
-		Cast<APlayerCharacterController>(GetController())->IsJumpAvailable = true;
+		Cast<APlayerCharacterController>(GetController())->bIsJumpAvailable = true;
 	}
 
 	FVector PotentialMovementVector = ConsumeMovementInputVector();

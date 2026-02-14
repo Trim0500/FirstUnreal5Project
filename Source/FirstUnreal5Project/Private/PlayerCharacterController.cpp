@@ -25,9 +25,9 @@ void APlayerCharacterController::SetupInputComponent()
 
 	if (UEnhancedInputComponent* EnhancedInputComponenet = Cast<UEnhancedInputComponent>(InputComponent))
 	{
-		EnhancedInputComponenet->BindAction(IA_MoveVertical, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedMoveVertically);
-		EnhancedInputComponenet->BindAction(IA_MoveHorizontal, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedMoveHorizontal);
-		EnhancedInputComponenet->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedJump);
+		EnhancedInputComponenet->BindAction(MoveVertical, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedMoveVertically);
+		EnhancedInputComponenet->BindAction(MoveHorizontal, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedMoveHorizontal);
+		EnhancedInputComponenet->BindAction(Jump, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedJump);
 	}
 }
 
@@ -77,16 +77,16 @@ void APlayerCharacterController::EnhancedJump(const FInputActionValue& value)
 {
 	if (value.GetValueType() == EInputActionValueType::Boolean)
 	{
-		if (IsJumpAvailable)
+		if (bIsJumpAvailable)
 		{
-			IsJumpAvailable = false;
+			bIsJumpAvailable = false;
 
-			Jump();
+			UseJump();
 		}
 	}
 }
 
-void APlayerCharacterController::Jump()
+void APlayerCharacterController::UseJump()
 {
 	ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
 	if (CharacterPawn != nullptr)

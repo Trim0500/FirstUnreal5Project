@@ -12,12 +12,15 @@ class FIRSTUNREAL5PROJECT_API ACharacterPawn : public APawn
 	GENERATED_BODY()
 
 public:
+	/** Set scale for horizontal movement ( in cm ) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
 	float MoveScale;
 
+	/** Set peak height to add when jumping ( in cm ) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
 	float PeakJumpHeight;
 
+	/** Set time to reach peak height when jumping ( in sec ) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
 	float TimeToPeakJump;
 
