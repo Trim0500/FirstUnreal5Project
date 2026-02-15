@@ -24,9 +24,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
 	float TimeToPeakJump;
 
-	/*UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Player Collission")
-	UBoxComponent* Feet;*/
-
 	// Sets default values for this pawn's properties
 	ACharacterPawn();
 
@@ -46,11 +43,8 @@ public:
 
 	void ApplyJumpToZ(float, float, float);
 
-	/*
-	* NOTE: Unsure how to set up the collision component to detect collision with the ground. Will need to research this further.
-	*/
-	/*UFUNCTION()
-	void OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);*/
+	UFUNCTION()
+	void OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 private:
 	float JumpGravity;

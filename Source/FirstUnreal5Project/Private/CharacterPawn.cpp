@@ -5,6 +5,7 @@
 #include <math.h>
 
 #include "Kismet/GameplayStatics.h"
+#include "Components/BoxComponent.h"
 
 #include "CharacterPawn.h"
 #include "PlayerCharacterController.h"
@@ -22,17 +23,19 @@ void ACharacterPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
-	/*
-	* NOTE: Unsure how to set up the collision component to detect collision with the ground. Will need to research this further.
-	*/
-	/*if (Feet)
-	{
-		Feet->OnComponentBeginOverlap.AddDynamic(this, &ACharacterPawn::OnFeetOverlapBegin);
-	}*/
-
 	JumpGravity = (-2 * PeakJumpHeight) / FMath::Square(TimeToPeakJump);
 
 	JumpVelocity = (2 * PeakJumpHeight) / TimeToPeakJump;
+
+	auto groundDetectorComponents = GetComponentsByTag(UPrimitiveComponent::StaticClass(), FName("GroundDetector"));
+	if (groundDetectorComponents.Num() > 0)
+	{
+		if (auto groundDetectorPtr = Cast<UBoxComponent>(groundDetectorComponents[0]))
+		{
+			groundDetectorPtr->SetGenerateOverlapEvents(false);
+			groundDetectorPtr->OnComponentBeginOverlap.AddDynamic(this, &ACharacterPawn::OnFeetOverlapBegin);
+		}
+	}
 }
 
 // Called every frame
@@ -46,22 +49,16 @@ void ACharacterPawn::Tick(float DeltaTime)
 		ApplyJumpToZ(JumpGravity, JumpVelocity, JumpElapsedTime);
 	}
 
-	if (JumpElapsedTime >= (TimeToPeakJump * 2) - 0.01)
+	if (bIsJumping && TimeToPeakJump <= JumpElapsedTime)
 	{
-		/*
-		* NOTE: Unsure how to set up the collision component to detect collision with the ground. Will need to research this further.
-		*		For now, will base jump reset on timer based on expected jump duration. Will need to adjust this value based on testing and how it feels in game.
-		*/
-
-		JumpStartZ = 0.0f;
-
-		EnableGravity(true);
-
-		JumpElapsedTime = 0.0f;
-
-		bIsJumping = false;
-
-		Cast<APlayerCharacterController>(GetController())->bIsJumpAvailable = true;
+		auto groundDetectorComponents = GetComponentsByTag(UPrimitiveComponent::StaticClass(), FName("GroundDetector"));
+		if (groundDetectorComponents.Num() > 0)
+		{
+			if (auto groundDetectorPtr = Cast<UBoxComponent>(groundDetectorComponents[0]))
+			{
+				groundDetectorPtr->SetGenerateOverlapEvents(true);
+			}
+		}
 	}
 
 	FVector PotentialMovementVector = ConsumeMovementInputVector();
@@ -162,13 +159,30 @@ void ACharacterPawn::JumpPawn()
 	JumpStartZ = GetActorLocation().Z;
 }
 
-/*
-* NOTE: Unsure how to set up the collision component to detect collision with the ground. Will need to research this further.
-*/
-//void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-//{
-//
-//}
+void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor != nullptr && OtherActor->ActorHasTag("Floor"))
+	{
+		auto groundDetectorComponents = GetComponentsByTag(UPrimitiveComponent::StaticClass(), FName("GroundDetector"));
+		if (groundDetectorComponents.Num() > 0)
+		{
+			if (auto groundDetectorPtr = Cast<UBoxComponent>(groundDetectorComponents[0]))
+			{
+				groundDetectorPtr->SetGenerateOverlapEvents(false);
+			}
+		}
+
+		JumpStartZ = 0.0f;
+
+		EnableGravity(true);
+
+		JumpElapsedTime = 0.0f;
+
+		bIsJumping = false;
+
+		Cast<APlayerCharacterController>(GetController())->bIsJumpAvailable = true;
+	}
+}
 
 void ACharacterPawn::EnableGravity(bool bEnable)
 {
