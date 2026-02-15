@@ -27,15 +27,7 @@ void ACharacterPawn::BeginPlay()
 
 	JumpVelocity = (2 * PeakJumpHeight) / TimeToPeakJump;
 
-	auto groundDetectorComponents = GetComponentsByTag(UPrimitiveComponent::StaticClass(), FName("GroundDetector"));
-	if (groundDetectorComponents.Num() > 0)
-	{
-		if (auto groundDetectorPtr = Cast<UBoxComponent>(groundDetectorComponents[0]))
-		{
-			groundDetectorPtr->SetGenerateOverlapEvents(false);
-			groundDetectorPtr->OnComponentBeginOverlap.AddDynamic(this, &ACharacterPawn::OnFeetOverlapBegin);
-		}
-	}
+	EnableFeetOverlapEvents(false, true);
 }
 
 // Called every frame
@@ -51,14 +43,7 @@ void ACharacterPawn::Tick(float DeltaTime)
 
 	if (bIsJumping && TimeToPeakJump <= JumpElapsedTime)
 	{
-		auto groundDetectorComponents = GetComponentsByTag(UPrimitiveComponent::StaticClass(), FName("GroundDetector"));
-		if (groundDetectorComponents.Num() > 0)
-		{
-			if (auto groundDetectorPtr = Cast<UBoxComponent>(groundDetectorComponents[0]))
-			{
-				groundDetectorPtr->SetGenerateOverlapEvents(true);
-			}
-		}
+		EnableFeetOverlapEvents(true, false);
 	}
 
 	FVector PotentialMovementVector = ConsumeMovementInputVector();
@@ -163,14 +148,7 @@ void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AAc
 {
 	if (OtherActor != nullptr && OtherActor->ActorHasTag("Floor"))
 	{
-		auto groundDetectorComponents = GetComponentsByTag(UPrimitiveComponent::StaticClass(), FName("GroundDetector"));
-		if (groundDetectorComponents.Num() > 0)
-		{
-			if (auto groundDetectorPtr = Cast<UBoxComponent>(groundDetectorComponents[0]))
-			{
-				groundDetectorPtr->SetGenerateOverlapEvents(false);
-			}
-		}
+		EnableFeetOverlapEvents(false, false);
 
 		JumpStartZ = 0.0f;
 
@@ -190,5 +168,22 @@ void ACharacterPawn::EnableGravity(bool bEnable)
 	if (auto rootPrimitive = Cast<UPrimitiveComponent>(rootComponent))
 	{
 		rootPrimitive->SetEnableGravity(bEnable);
+	}
+}
+
+void ACharacterPawn::EnableFeetOverlapEvents(bool enable, bool mapOverlapFunction)
+{
+	auto groundDetectorComponents = GetComponentsByTag(UPrimitiveComponent::StaticClass(), FName("GroundDetector"));
+	if (groundDetectorComponents.Num() > 0)
+	{
+		if (auto groundDetectorPtr = Cast<UBoxComponent>(groundDetectorComponents[0]))
+		{
+			groundDetectorPtr->SetGenerateOverlapEvents(enable);
+
+			if (mapOverlapFunction)
+			{
+				groundDetectorPtr->OnComponentBeginOverlap.AddDynamic(this, &ACharacterPawn::OnFeetOverlapBegin);
+			}
+		}
 	}
 }

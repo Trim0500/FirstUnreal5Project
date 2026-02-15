@@ -59,4 +59,6 @@ private:
 
 	void EnableGravity(bool);
 
+	void EnableFeetOverlapEvents(bool, bool);
+
 };
