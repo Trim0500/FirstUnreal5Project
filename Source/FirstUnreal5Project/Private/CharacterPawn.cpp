@@ -5,8 +5,10 @@
 #include <math.h>
 
 #include "Kismet/GameplayStatics.h"
+#include "Components/BoxComponent.h"
 
 #include "CharacterPawn.h"
+#include "PlayerCharacterController.h"
 
 // Sets default values
 ACharacterPawn::ACharacterPawn()
@@ -21,12 +23,28 @@ void ACharacterPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
+	JumpGravity = (-2 * PeakJumpHeight) / FMath::Square(TimeToPeakJump);
+
+	JumpVelocity = (2 * PeakJumpHeight) / TimeToPeakJump;
+
+	EnableFeetOverlapEvents(false, true);
 }
 
 // Called every frame
 void ACharacterPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (bIsJumping)
+	{
+		JumpElapsedTime += DeltaTime;
+		ApplyJumpToZ(JumpGravity, JumpVelocity, JumpElapsedTime);
+	}
+
+	if (bIsJumping && TimeToPeakJump <= JumpElapsedTime)
+	{
+		EnableFeetOverlapEvents(true, false);
+	}
 
 	FVector PotentialMovementVector = ConsumeMovementInputVector();
 	if (PotentialMovementVector.X != 0 || PotentialMovementVector.Y != 0 || PotentialMovementVector.Z != 0)
@@ -77,37 +95,95 @@ void ACharacterPawn::Tick(float DeltaTime)
 		}
 
 		FVector NewMovementVector = GetActorLocation();
-		NewMovementVector.X += PotentialMovementVector.X * _moveScale;
-		NewMovementVector.Y += PotentialMovementVector.Y * _moveScale;
-		NewMovementVector.Z += PotentialMovementVector.Z * _jumpScale;
+		NewMovementVector.X += PotentialMovementVector.X * MoveScale;
+		NewMovementVector.Y += PotentialMovementVector.Y * MoveScale;
+		if (bIsJumping)
+		{
+			NewMovementVector.Z = PotentialMovementVector.Z;
+		}
 		SetActorLocation(NewMovementVector);
 	}
 }
 
-void ACharacterPawn::MovePawnHorizontally(float _inputVector)
+void ACharacterPawn::MovePawnHorizontally(float InputVector)
 {
-	_inputVector = FMath::Clamp(_inputVector, -1.0f, 1.0f);
+	InputVector = FMath::Clamp(InputVector, -1.0f, 1.0f);
 	auto PlayerCamera = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("CameraSwivel"));
 	if (PlayerCamera.Num() > 0)
 	{
 		auto CameraRightVector = Cast<UStaticMeshComponent>(PlayerCamera[0])->GetRightVector();
-		AddMovementInput(CameraRightVector, _moveScale * _inputVector);
+		AddMovementInput(CameraRightVector, MoveScale * InputVector);
 	}
 }
 
-void ACharacterPawn::MovePawnVertically(float _inputVector)
+void ACharacterPawn::MovePawnVertically(float InputVector)
 {
-	_inputVector = FMath::Clamp(_inputVector, -1.0f, 1.0f);
+	InputVector = FMath::Clamp(InputVector, -1.0f, 1.0f);
 	auto PlayerCamera = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("CameraSwivel"));
 	if (PlayerCamera.Num() > 0)
 	{
 		auto CameraForwardVector = Cast<UStaticMeshComponent>(PlayerCamera[0])->GetForwardVector();
-		AddMovementInput(CameraForwardVector, _moveScale * _inputVector);
+		AddMovementInput(CameraForwardVector, MoveScale * InputVector);
 	}
+}
+
+void ACharacterPawn::ApplyJumpToZ(float Gravity, float Velocity, float Time)
+{
+	auto newActorHeight = (0.5f * Gravity * (FMath::Square(Time))) + (Velocity * Time) + JumpStartZ;
+	AddMovementInput(GetActorUpVector(), newActorHeight);
 }
 
 void ACharacterPawn::JumpPawn()
 {
-	AddMovementInput(GetActorUpVector(), _jumpScale);
+	bIsJumping = true;
+
+	JumpElapsedTime = 0.0f;
+
+	EnableGravity(false);
+
+	JumpStartZ = GetActorLocation().Z;
 }
 
+void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor != nullptr && OtherActor->ActorHasTag("Floor"))
+	{
+		EnableFeetOverlapEvents(false, false);
+
+		JumpStartZ = 0.0f;
+
+		EnableGravity(true);
+
+		JumpElapsedTime = 0.0f;
+
+		bIsJumping = false;
+
+		Cast<APlayerCharacterController>(GetController())->bIsJumpAvailable = true;
+	}
+}
+
+void ACharacterPawn::EnableGravity(bool bEnable)
+{
+	auto rootComponent = RootComponent;
+	if (auto rootPrimitive = Cast<UPrimitiveComponent>(rootComponent))
+	{
+		rootPrimitive->SetEnableGravity(bEnable);
+	}
+}
+
+void ACharacterPawn::EnableFeetOverlapEvents(bool enable, bool mapOverlapFunction)
+{
+	auto groundDetectorComponents = GetComponentsByTag(UPrimitiveComponent::StaticClass(), FName("GroundDetector"));
+	if (groundDetectorComponents.Num() > 0)
+	{
+		if (auto groundDetectorPtr = Cast<UBoxComponent>(groundDetectorComponents[0]))
+		{
+			groundDetectorPtr->SetGenerateOverlapEvents(enable);
+
+			if (mapOverlapFunction)
+			{
+				groundDetectorPtr->OnComponentBeginOverlap.AddDynamic(this, &ACharacterPawn::OnFeetOverlapBegin);
+			}
+		}
+	}
+}

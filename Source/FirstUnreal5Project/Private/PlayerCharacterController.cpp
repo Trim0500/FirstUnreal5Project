@@ -25,19 +25,10 @@ void APlayerCharacterController::SetupInputComponent()
 
 	if (UEnhancedInputComponent* EnhancedInputComponenet = Cast<UEnhancedInputComponent>(InputComponent))
 	{
-		EnhancedInputComponenet->BindAction(IA_MoveVertical, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedMoveVertically);
-		EnhancedInputComponenet->BindAction(IA_MoveHorizontal, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedMoveHorizontal);
-		EnhancedInputComponenet->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedJump);
+		EnhancedInputComponenet->BindAction(MoveVertical, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedMoveVertically);
+		EnhancedInputComponenet->BindAction(MoveHorizontal, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedMoveHorizontal);
+		EnhancedInputComponenet->BindAction(Jump, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedJump);
 	}
-
-	/*UE_LOG(LogTemp, Warning, TEXT("Trying to find camera..."));
-
-	auto PlayerCamera = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("CameraSwivel"));
-	if (PlayerCamera.Num() > 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Found it, setting to current view target"));
-		this->SetViewTarget(Cast<AActor>(PlayerCamera[0]));
-	}*/
 }
 
 void APlayerCharacterController::EnhancedMoveHorizontal(const FInputActionValue& value)
@@ -86,11 +77,16 @@ void APlayerCharacterController::EnhancedJump(const FInputActionValue& value)
 {
 	if (value.GetValueType() == EInputActionValueType::Boolean)
 	{
-		Jump();
+		if (bIsJumpAvailable)
+		{
+			bIsJumpAvailable = false;
+
+			UseJump();
+		}
 	}
 }
 
-void APlayerCharacterController::Jump()
+void APlayerCharacterController::UseJump()
 {
 	ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
 	if (CharacterPawn != nullptr)
