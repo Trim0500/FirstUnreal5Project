@@ -29,4 +29,12 @@ public:
 
 	virtual void OnHitDetected() override;
 
+	/** Force to apply onto a projectile when it is fired after being spawned in */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Projectile Parameters")
+	float LaunchForce;
+
+	/** Projectile damage value when it hits a destructible object or enemy */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Projectile Parameters")
+	int Power;
+
 };

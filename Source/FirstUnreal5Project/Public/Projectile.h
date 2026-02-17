@@ -25,9 +25,4 @@ public:
 	virtual void Launch() = 0;
 
 	virtual void OnHitDetected() = 0;
-
-private:
-	float LaunchForce;
-
-	int Power;
 };
