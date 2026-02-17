@@ -3,6 +3,7 @@
 #pragma once
 
 #include "ProjectileSpawner.h"
+#include "HeavyProjecile.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -26,5 +27,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual IProjectile* CreateProjectile() override;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Projectile")
+	TSoftClassPtr<AHeavyProjecile> ProjectileClass;
 
 };
