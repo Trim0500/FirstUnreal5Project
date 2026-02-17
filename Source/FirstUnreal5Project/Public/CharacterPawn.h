@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-//#include "Components/BoxComponent.h"
 #include "CharacterPawn.generated.h"
 
 UCLASS()
@@ -13,23 +12,17 @@ class FIRSTUNREAL5PROJECT_API ACharacterPawn : public APawn
 	GENERATED_BODY()
 
 public:
+	/** Set scale for horizontal movement ( in cm ) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
 	float MoveScale;
 
-	/*
-	* [PC-02]: TODO: Remove variable.
-	*/
+	/** Set peak height to add when jumping ( in cm ) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
-	float JumpScale;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
-	float JumpAcceleration;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
-	float InitJumpVelocity;
+	float PeakJumpHeight;
 
-	/*UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Player Collission")
-	UBoxComponent* Feet;*/
+	/** Set time to reach peak height when jumping ( in sec ) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
+	float TimeToPeakJump;
 
 	// Sets default values for this pawn's properties
 	ACharacterPawn();
@@ -37,11 +30,6 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-private:
-	float _currentJumpVelocity;
-
-	bool _isJumping;
 
 public:	
 	// Called every frame
@@ -53,7 +41,24 @@ public:
 
 	void JumpPawn();
 
-	/*UFUNCTION()
-	void OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);*/
+	void ApplyJumpToZ(float, float, float);
+
+	UFUNCTION()
+	void OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+private:
+	float JumpGravity;
+
+	float JumpVelocity;
+
+	bool bIsJumping;
+
+	float JumpElapsedTime;
+
+	float JumpStartZ;
+
+	void EnableGravity(bool);
+
+	void EnableFeetOverlapEvents(bool, bool);
 
 };

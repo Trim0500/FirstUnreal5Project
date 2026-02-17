@@ -19,19 +19,19 @@ class FIRSTUNREAL5PROJECT_API APlayerCharacterController : public APlayerControl
 	
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions")
-	UInputAction* IA_MoveHorizontal;
+	UInputAction* MoveHorizontal;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions")
-	UInputAction* IA_MoveVertical;
+	UInputAction* MoveVertical;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions")
-	UInputAction* IA_Jump;
+	UInputAction* Jump;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Context")
 	TSoftObjectPtr<UInputMappingContext> InputMapping;
 	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Context")
-	bool IsJumpAvailable;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Flags")
+	bool bIsJumpAvailable;
 
 	// Called to bind functionality to input
 	virtual void SetupInputComponent() override;
@@ -46,5 +46,5 @@ public:
 
 	void EnhancedJump(const FInputActionValue& value);
 
-	void Jump();
+	void UseJump();
 };

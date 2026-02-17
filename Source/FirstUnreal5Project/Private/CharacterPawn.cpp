@@ -5,8 +5,10 @@
 #include <math.h>
 
 #include "Kismet/GameplayStatics.h"
+#include "Components/BoxComponent.h"
 
 #include "CharacterPawn.h"
+#include "PlayerCharacterController.h"
 
 // Sets default values
 ACharacterPawn::ACharacterPawn()
@@ -21,10 +23,11 @@ void ACharacterPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
-	/*if (Feet)
-	{
-		Feet->OnComponentBeginOverlap.AddDynamic(this, &ACharacterPawn::OnFeetOverlapBegin);
-	}*/
+	JumpGravity = (-2 * PeakJumpHeight) / FMath::Square(TimeToPeakJump);
+
+	JumpVelocity = (2 * PeakJumpHeight) / TimeToPeakJump;
+
+	EnableFeetOverlapEvents(false, true);
 }
 
 // Called every frame
@@ -32,17 +35,16 @@ void ACharacterPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	/*
-	* [PC-02]: TODO: Add logic to handle jumping.
-	*			Handling the logic should be done via a function ( AddJumpToZ ) that passes over current velocity and acceleration values.
-	*/
+	if (bIsJumping)
+	{
+		JumpElapsedTime += DeltaTime;
+		ApplyJumpToZ(JumpGravity, JumpVelocity, JumpElapsedTime);
+	}
 
-	/*
-	* [PC-02]: TODO: Add logic to detect when _currentJumpVelocity is negative.
-	*					If check passes, activate a component that detects collision with the ground and resets _isJumping to false and _currentJumpVelocity
-	*					to InitJumpVelocity.
-	*					Should try to find the component by using GetComponentsByTag and searching for a component with tag "GroundDetector".
-	*/
+	if (bIsJumping && TimeToPeakJump <= JumpElapsedTime)
+	{
+		EnableFeetOverlapEvents(true, false);
+	}
 
 	FVector PotentialMovementVector = ConsumeMovementInputVector();
 	if (PotentialMovementVector.X != 0 || PotentialMovementVector.Y != 0 || PotentialMovementVector.Z != 0)
@@ -95,56 +97,93 @@ void ACharacterPawn::Tick(float DeltaTime)
 		FVector NewMovementVector = GetActorLocation();
 		NewMovementVector.X += PotentialMovementVector.X * MoveScale;
 		NewMovementVector.Y += PotentialMovementVector.Y * MoveScale;
-		/*
-		* [PC-02]: TODO: Remove change in Z axis through multiplying the Z value of the PotentialMovementVector by JumpScale and
-							adding it to the current Z value of the NewMovementVector.
-		*/
-		NewMovementVector.Z += PotentialMovementVector.Z * JumpScale;
+		if (bIsJumping)
+		{
+			NewMovementVector.Z = PotentialMovementVector.Z;
+		}
 		SetActorLocation(NewMovementVector);
 	}
 }
 
-void ACharacterPawn::MovePawnHorizontally(float _inputVector)
+void ACharacterPawn::MovePawnHorizontally(float InputVector)
 {
-	_inputVector = FMath::Clamp(_inputVector, -1.0f, 1.0f);
+	InputVector = FMath::Clamp(InputVector, -1.0f, 1.0f);
 	auto PlayerCamera = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("CameraSwivel"));
 	if (PlayerCamera.Num() > 0)
 	{
 		auto CameraRightVector = Cast<UStaticMeshComponent>(PlayerCamera[0])->GetRightVector();
-		AddMovementInput(CameraRightVector, MoveScale * _inputVector);
+		AddMovementInput(CameraRightVector, MoveScale * InputVector);
 	}
 }
 
-void ACharacterPawn::MovePawnVertically(float _inputVector)
+void ACharacterPawn::MovePawnVertically(float InputVector)
 {
-	_inputVector = FMath::Clamp(_inputVector, -1.0f, 1.0f);
+	InputVector = FMath::Clamp(InputVector, -1.0f, 1.0f);
 	auto PlayerCamera = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("CameraSwivel"));
 	if (PlayerCamera.Num() > 0)
 	{
 		auto CameraForwardVector = Cast<UStaticMeshComponent>(PlayerCamera[0])->GetForwardVector();
-		AddMovementInput(CameraForwardVector, MoveScale * _inputVector);
+		AddMovementInput(CameraForwardVector, MoveScale * InputVector);
 	}
 }
 
-/*
-* [PC-02]: TODO: Add in function AddJumpToZ.
-*					Params: currentJumpVelocity ( float )
-*							acceleration ( float )
-* 					Return: void
-*					Void function that uses AddMovementInput to apply the movement vector to the character.
-*					Should only apply movement to Z axis.
-*					Update _currentJumpVelocity by adding the acceleration value.
-*/
+void ACharacterPawn::ApplyJumpToZ(float Gravity, float Velocity, float Time)
+{
+	auto newActorHeight = (0.5f * Gravity * (FMath::Square(Time))) + (Velocity * Time) + JumpStartZ;
+	AddMovementInput(GetActorUpVector(), newActorHeight);
+}
 
 void ACharacterPawn::JumpPawn()
 {
-	/*
-	* [PC-02]: TODO: Change functionality to simply set _isJumping to true and set _currentJumpVelocity to InitJumpVelocity.
-	*/
-	AddMovementInput(GetActorUpVector(), JumpScale);
+	bIsJumping = true;
+
+	JumpElapsedTime = 0.0f;
+
+	EnableGravity(false);
+
+	JumpStartZ = GetActorLocation().Z;
 }
 
-//void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-//{
-//
-//}
+void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor != nullptr && OtherActor->ActorHasTag("Floor"))
+	{
+		EnableFeetOverlapEvents(false, false);
+
+		JumpStartZ = 0.0f;
+
+		EnableGravity(true);
+
+		JumpElapsedTime = 0.0f;
+
+		bIsJumping = false;
+
+		Cast<APlayerCharacterController>(GetController())->bIsJumpAvailable = true;
+	}
+}
+
+void ACharacterPawn::EnableGravity(bool bEnable)
+{
+	auto rootComponent = RootComponent;
+	if (auto rootPrimitive = Cast<UPrimitiveComponent>(rootComponent))
+	{
+		rootPrimitive->SetEnableGravity(bEnable);
+	}
+}
+
+void ACharacterPawn::EnableFeetOverlapEvents(bool enable, bool mapOverlapFunction)
+{
+	auto groundDetectorComponents = GetComponentsByTag(UPrimitiveComponent::StaticClass(), FName("GroundDetector"));
+	if (groundDetectorComponents.Num() > 0)
+	{
+		if (auto groundDetectorPtr = Cast<UBoxComponent>(groundDetectorComponents[0]))
+		{
+			groundDetectorPtr->SetGenerateOverlapEvents(enable);
+
+			if (mapOverlapFunction)
+			{
+				groundDetectorPtr->OnComponentBeginOverlap.AddDynamic(this, &ACharacterPawn::OnFeetOverlapBegin);
+			}
+		}
+	}
+}
