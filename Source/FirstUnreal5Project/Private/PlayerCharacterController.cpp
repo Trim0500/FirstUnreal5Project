@@ -28,6 +28,8 @@ void APlayerCharacterController::SetupInputComponent()
 		EnhancedInputComponenet->BindAction(MoveVertical, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedMoveVertically);
 		EnhancedInputComponenet->BindAction(MoveHorizontal, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedMoveHorizontal);
 		EnhancedInputComponenet->BindAction(Jump, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedJump);
+		EnhancedInputComponenet->BindAction(FireLightProjectile, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedFireLightProjectile);
+		EnhancedInputComponenet->BindAction(FireHeavyProjectile, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedFireHeavyProjectile);
 	}
 }
 
@@ -92,5 +94,25 @@ void APlayerCharacterController::UseJump()
 	if (CharacterPawn != nullptr)
 	{
 		CharacterPawn->JumpPawn();
+	}
+}
+
+void APlayerCharacterController::EnhancedFireLightProjectile(const FInputActionValue& value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedFireLightProjectile]: Starting fire light projectile..."));
+	
+	if (EInputActionValueType::Boolean == value.GetValueType())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedFireLightProjectile]: Input accepted, will use logic..."));
+	}
+}
+
+void APlayerCharacterController::EnhancedFireHeavyProjectile(const FInputActionValue& value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedFireHeavyProjectile]: Starting fire heavy projectile..."));
+
+	if (EInputActionValueType::Boolean == value.GetValueType())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedFireHeavyProjectile]: Input accepted, will use logic..."));
 	}
 }

@@ -18,18 +18,31 @@ class FIRSTUNREAL5PROJECT_API APlayerCharacterController : public APlayerControl
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions")
+	/** Input Action asset to map controller input to horizontal move action */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( Movement )")
 	UInputAction* MoveHorizontal;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions")
+	/** Input Action asset to map controller input to vertical move action */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( Movement )")
 	UInputAction* MoveVertical;
 	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions")
+	/** Input Action asset to map controller input to jump action */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( Movement )")
 	UInputAction* Jump;
+	
+	/** Input Action asset to map controller input to firing light projectile action */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( Attacks )")
+	UInputAction* FireLightProjectile;
 
+	/** Input Action asset to map controller input to firing heavy projectile action */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( Attacks )")
+	UInputAction* FireHeavyProjectile;
+
+	/** Input Mapping Context asset for neutral player character state */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Context")
 	TSoftObjectPtr<UInputMappingContext> InputMapping;
 	
+	/** Can this controller use a jump action? */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Flags")
 	bool bIsJumpAvailable;
 
@@ -47,4 +60,8 @@ public:
 	void EnhancedJump(const FInputActionValue& value);
 
 	void UseJump();
+
+	void EnhancedFireLightProjectile(const FInputActionValue& value);
+
+	void EnhancedFireHeavyProjectile(const FInputActionValue& value);
 };
