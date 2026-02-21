@@ -9,6 +9,9 @@ ALightProjectile::ALightProjectile()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	UE_LOG(LogTemp, Warning, TEXT("[ALightProjectile::ALightProjectile]: Setting the destroy delay..."));
+
+	DestroyDelay = 1.0f;
 }
 
 // Called when the game starts or when spawned
@@ -26,6 +29,13 @@ void ALightProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	DestroyElapsedTime += DeltaTime;
+	if (DestroyElapsedTime >= DestroyDelay)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ALightProjectile::Tick]: Destroying Light Projectile after delay..."));
+
+		Destroy();
+	}
 }
 
 void ALightProjectile::Launch()

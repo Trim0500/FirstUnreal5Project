@@ -37,4 +37,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Projectile Parameters")
 	int Power;
 
+private:
+	float DestroyDelay;
+
+	float DestroyElapsedTime;
 };
