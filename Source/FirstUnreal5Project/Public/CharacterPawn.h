@@ -24,6 +24,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
 	float TimeToPeakJump;
 
+	/** Class reference to light projectile spawner to spawn light projectiles when firing light projectile action is triggered */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Weapons")
+	TSubclassOf<AActor> LightProjectileClass;
+
 	// Sets default values for this pawn's properties
 	ACharacterPawn();
 
@@ -42,6 +46,8 @@ public:
 	void JumpPawn();
 
 	void ApplyJumpToZ(float, float, float);
+
+	void FireLightProjectile();
 
 	UFUNCTION()
 	void OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

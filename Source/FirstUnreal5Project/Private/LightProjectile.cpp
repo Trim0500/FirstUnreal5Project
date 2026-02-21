@@ -15,7 +15,10 @@ ALightProjectile::ALightProjectile()
 void ALightProjectile::BeginPlay()
 {
 	Super::BeginPlay();
+
+	UE_LOG(LogTemp, Warning, TEXT("[ALightProjectile::BeginPlay]: Light Projectile created..."));
 	
+	Launch();
 }
 
 // Called every frame
@@ -27,7 +30,17 @@ void ALightProjectile::Tick(float DeltaTime)
 
 void ALightProjectile::Launch()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Light Projectile Launched!"));
+	UE_LOG(LogTemp, Warning, TEXT("[ALightProjectile::Launch]: Light Projectile will be launched..."));
+
+	auto StaticMeshComponent = FindComponentByClass<UStaticMeshComponent>();
+	if (StaticMeshComponent != nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ALightProjectile::Launch]: Mesh component found, applying force..."));
+
+		StaticMeshComponent->AddImpulse(GetActorForwardVector() * LaunchForce, NAME_None, true);
+
+		UE_LOG(LogTemp, Warning, TEXT("[ALightProjectile::Launch]: Launch successful!"));
+	}
 }
 
 void ALightProjectile::OnHitDetected()

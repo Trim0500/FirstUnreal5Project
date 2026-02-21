@@ -144,6 +144,26 @@ void ACharacterPawn::JumpPawn()
 	JumpStartZ = GetActorLocation().Z;
 }
 
+void ACharacterPawn::FireLightProjectile()
+{
+	UE_LOG(LogTemp, Warning, TEXT("[ACharacterPawn::FireLightProjectile]: Will start creating projectile..."));
+
+	if (LightProjectileClass != nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ACharacterPawn::BeginPlay]: Valid projectile spawner pointer, proceeding..."));
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		SpawnParams.Owner = this;
+
+		auto SpawnLocation = GetActorLocation();
+		SpawnLocation += GetActorForwardVector() * 100.0f; // Spawn the projectile a bit in front of the character
+		GetWorld()->SpawnActor<AActor>(LightProjectileClass, SpawnLocation, GetActorRotation(), SpawnParams);
+	
+		UE_LOG(LogTemp, Warning, TEXT("[ACharacterPawn::FireLightProjectile]: Succeeded to spawn projectile spawner actor!"));
+	}
+}
+
 void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor != nullptr && OtherActor->ActorHasTag("Floor"))
