@@ -20,6 +20,16 @@ void ALightProjectile::BeginPlay()
 	Super::BeginPlay();
 
 	UE_LOG(LogTemp, Warning, TEXT("[ALightProjectile::BeginPlay]: Light Projectile created..."));
+
+	auto StaticMeshComponent = FindComponentByClass<UStaticMeshComponent>();
+	if (StaticMeshComponent != nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ALightProjectile::BeginPlay]: Mesh component found, setting up hit event..."));
+
+		StaticMeshComponent->OnComponentHit.AddDynamic(this, &ALightProjectile::OnHitDetected);
+
+		UE_LOG(LogTemp, Warning, TEXT("[ALightProjectile::BeginPlay]: Hit event setup successful!"));
+	}
 	
 	Launch();
 }
@@ -53,7 +63,11 @@ void ALightProjectile::Launch()
 	}
 }
 
-void ALightProjectile::OnHitDetected()
+void ALightProjectile::OnHitDetected(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Light Projectile Hit Detected!"));
+	UE_LOG(LogTemp, Warning, TEXT("[ALightProjectile::OnHitDetected]: Light Projectile hit detected! Destroying the object..."));
+
+	Destroy();
+
+	UE_LOG(LogTemp, Warning, TEXT("[ALightProjectile::OnHitDetected]: Destroying Light Projectile after delay..."));
 }

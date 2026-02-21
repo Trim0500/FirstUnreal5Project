@@ -30,7 +30,7 @@ void AHeavyProjecile::Launch()
 	UE_LOG(LogTemp, Warning, TEXT("Light Projectile Launched!"));
 }
 
-void AHeavyProjecile::OnHitDetected()
+void AHeavyProjecile::OnHitDetected(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Light Projectile Hit Detected!"));
 }
