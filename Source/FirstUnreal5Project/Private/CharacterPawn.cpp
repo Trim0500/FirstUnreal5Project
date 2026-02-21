@@ -146,13 +146,9 @@ void ACharacterPawn::JumpPawn()
 
 void ACharacterPawn::FireProjectile(ProjectileType ProjectileType)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[ACharacterPawn::FireProjectile]: Will start creating projectile..."));
-
 	auto ProjectileClass = ProjectileType == ProjectileType::Light ? LightProjectileClass : HeavyProjectileClass;
 	if (ProjectileClass != nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ACharacterPawn::FireProjectile]: Valid projectile spawner pointer, proceeding..."));
-
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		SpawnParams.Owner = this;
@@ -160,8 +156,6 @@ void ACharacterPawn::FireProjectile(ProjectileType ProjectileType)
 		auto SpawnLocation = GetActorLocation();
 		SpawnLocation += GetActorForwardVector() * 100.0f; // Spawn the projectile a bit in front of the character
 		GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnLocation, GetActorRotation(), SpawnParams);
-	
-		UE_LOG(LogTemp, Warning, TEXT("[ACharacterPawn::FireProjectile]: Succeeded to spawn projectile spawner actor!"));
 	}
 }
 

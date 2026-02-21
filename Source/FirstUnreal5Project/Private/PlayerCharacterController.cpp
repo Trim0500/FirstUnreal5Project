@@ -99,17 +99,11 @@ void APlayerCharacterController::UseJump()
 
 void APlayerCharacterController::EnhancedFireLightProjectile(const FInputActionValue& value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedFireLightProjectile]: Starting fire light projectile..."));
-	
 	if (EInputActionValueType::Boolean == value.GetValueType())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedFireLightProjectile]: Input accepted, will use logic..."));
-
 		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
 		if (CharacterPawn != nullptr)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedFireLightProjectile]: Found the character, using the respective action..."));
-
 			CharacterPawn->FireProjectile(ProjectileType::Light);
 		}
 	}
@@ -117,16 +111,11 @@ void APlayerCharacterController::EnhancedFireLightProjectile(const FInputActionV
 
 void APlayerCharacterController::EnhancedFireHeavyProjectile(const FInputActionValue& value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedFireHeavyProjectile]: Starting fire heavy projectile..."));
-
 	if (EInputActionValueType::Boolean == value.GetValueType())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedFireHeavyProjectile]: Input accepted, will use logic..."));
 		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
 		if (CharacterPawn != nullptr)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedFireHeavyProjectile]: Found the character, using the respective action..."));
-
 			CharacterPawn->FireProjectile(ProjectileType::Heavy);
 		}
 	}
