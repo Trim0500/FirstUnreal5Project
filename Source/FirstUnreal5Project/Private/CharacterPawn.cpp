@@ -144,6 +144,36 @@ void ACharacterPawn::JumpPawn()
 	JumpStartZ = GetActorLocation().Z;
 }
 
+void ACharacterPawn::FireProjectile(ProjectileType ProjectileType)
+{
+	auto ProjectileClass = ProjectileType == ProjectileType::Light ? LightProjectileClass : HeavyProjectileClass;
+	if (ProjectileClass != nullptr)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		SpawnParams.Owner = this;
+
+		FVector SpawnLocation;
+		
+		FVector MeshForwardVector;
+
+		FRotator MeshRotation;
+
+		TArray<UActorComponent*> Mesh = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("PlayerMesh"));
+		if (Mesh.Num() > 0)
+		{
+			auto StaticMeshComponent = Cast<UStaticMeshComponent>(Mesh[0]);
+			SpawnLocation = StaticMeshComponent->GetComponentLocation();
+
+			MeshForwardVector = StaticMeshComponent->GetForwardVector();
+			SpawnLocation += MeshForwardVector * 10.0f;
+
+			MeshRotation = StaticMeshComponent->GetComponentRotation();
+			GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnLocation, MeshRotation, SpawnParams);
+		}
+	}
+}
+
 void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor != nullptr && OtherActor->ActorHasTag("Floor"))
