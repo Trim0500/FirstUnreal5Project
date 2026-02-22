@@ -153,9 +153,24 @@ void ACharacterPawn::FireProjectile(ProjectileType ProjectileType)
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		SpawnParams.Owner = this;
 
-		auto SpawnLocation = GetActorLocation();
-		SpawnLocation += GetActorForwardVector() * 100.0f; // Spawn the projectile a bit in front of the character
-		GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnLocation, GetActorRotation(), SpawnParams);
+		FVector SpawnLocation;
+		
+		FVector MeshForwardVector;
+
+		FRotator MeshRotation;
+
+		TArray<UActorComponent*> Mesh = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("PlayerMesh"));
+		if (Mesh.Num() > 0)
+		{
+			auto StaticMeshComponent = Cast<UStaticMeshComponent>(Mesh[0]);
+			SpawnLocation = StaticMeshComponent->GetComponentLocation();
+
+			MeshForwardVector = StaticMeshComponent->GetForwardVector();
+			SpawnLocation += MeshForwardVector * 10.0f;
+
+			MeshRotation = StaticMeshComponent->GetComponentRotation();
+			GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnLocation, MeshRotation, SpawnParams);
+		}
 	}
 }
 
