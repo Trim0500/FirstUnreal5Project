@@ -24,5 +24,6 @@ class FIRSTUNREAL5PROJECT_API IProjectile
 public:
 	virtual void Launch() = 0;
 
-	virtual void OnHitDetected() = 0;
+	UFUNCTION()
+	virtual void OnHitDetected(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) = 0;
 };

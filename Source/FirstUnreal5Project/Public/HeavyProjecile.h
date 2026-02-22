@@ -27,7 +27,8 @@ public:
 
 	virtual void Launch() override;
 
-	virtual void OnHitDetected() override;
+	UFUNCTION()
+	virtual void OnHitDetected(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
 
 	/** Force to apply onto a projectile when it is fired after being spawned in */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Projectile Parameters")
@@ -37,4 +38,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Projectile Parameters")
 	int Power;
 
+private:
+	float DestroyDelay;
+
+	float DestroyElapsedTime;
 };

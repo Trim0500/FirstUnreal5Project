@@ -6,6 +6,12 @@
 #include "GameFramework/Pawn.h"
 #include "CharacterPawn.generated.h"
 
+enum ProjectileType
+{
+	Light,
+	Heavy
+};
+
 UCLASS()
 class FIRSTUNREAL5PROJECT_API ACharacterPawn : public APawn
 {
@@ -23,6 +29,14 @@ public:
 	/** Set time to reach peak height when jumping ( in sec ) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
 	float TimeToPeakJump;
+
+	/** Class reference to light projectile spawner to spawn light projectiles when firing light projectile action is triggered */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Weapons")
+	TSubclassOf<AActor> LightProjectileClass;
+
+	/** Class reference to heavy projectile spawner to spawn heavy projectiles when firing heavy projectile action is triggered */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Weapons")
+	TSubclassOf<AActor> HeavyProjectileClass;
 
 	// Sets default values for this pawn's properties
 	ACharacterPawn();
@@ -42,6 +56,8 @@ public:
 	void JumpPawn();
 
 	void ApplyJumpToZ(float, float, float);
+
+	void FireProjectile(ProjectileType);
 
 	UFUNCTION()
 	void OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

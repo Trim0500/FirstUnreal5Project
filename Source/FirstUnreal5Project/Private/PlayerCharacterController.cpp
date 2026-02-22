@@ -28,6 +28,8 @@ void APlayerCharacterController::SetupInputComponent()
 		EnhancedInputComponenet->BindAction(MoveVertical, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedMoveVertically);
 		EnhancedInputComponenet->BindAction(MoveHorizontal, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedMoveHorizontal);
 		EnhancedInputComponenet->BindAction(Jump, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedJump);
+		EnhancedInputComponenet->BindAction(FireLightProjectile, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedFireLightProjectile);
+		EnhancedInputComponenet->BindAction(FireHeavyProjectile, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedFireHeavyProjectile);
 	}
 }
 
@@ -92,5 +94,29 @@ void APlayerCharacterController::UseJump()
 	if (CharacterPawn != nullptr)
 	{
 		CharacterPawn->JumpPawn();
+	}
+}
+
+void APlayerCharacterController::EnhancedFireLightProjectile(const FInputActionValue& value)
+{
+	if (EInputActionValueType::Boolean == value.GetValueType())
+	{
+		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
+		if (CharacterPawn != nullptr)
+		{
+			CharacterPawn->FireProjectile(ProjectileType::Light);
+		}
+	}
+}
+
+void APlayerCharacterController::EnhancedFireHeavyProjectile(const FInputActionValue& value)
+{
+	if (EInputActionValueType::Boolean == value.GetValueType())
+	{
+		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
+		if (CharacterPawn != nullptr)
+		{
+			CharacterPawn->FireProjectile(ProjectileType::Heavy);
+		}
 	}
 }
