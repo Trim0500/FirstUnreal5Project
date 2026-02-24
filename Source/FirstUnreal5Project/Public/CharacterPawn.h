@@ -12,6 +12,14 @@ enum ProjectileType
 	Heavy
 };
 
+enum MeleeAttackType
+{
+	MeleeAttackOne,
+	MeleeAttackTwo,
+	MeleeAttackThree,
+	MeleeAttackFour
+};
+
 UCLASS()
 class FIRSTUNREAL5PROJECT_API ACharacterPawn : public APawn
 {
@@ -37,6 +45,22 @@ public:
 	/** Class reference to heavy projectile spawner to spawn heavy projectiles when firing heavy projectile action is triggered */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Weapons")
 	TSubclassOf<AActor> HeavyProjectileClass;
+	
+	/** Class reference to first melee attack to spawn in after respective trigger */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
+	TSubclassOf<AActor> MeleeAttackOne;
+	
+	/** Class reference to second melee attack to spawn in after respective trigger */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
+	TSubclassOf<AActor> MeleeAttackTwo;
+	
+	/** Class reference to third melee attack to spawn in after respective trigger */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
+	TSubclassOf<AActor> MeleeAttackThree;
+	
+	/** Class reference to fourth melee attack to spawn in after respective trigger */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
+	TSubclassOf<AActor> MeleeAttackFour;
 
 	// Sets default values for this pawn's properties
 	ACharacterPawn();
@@ -58,6 +82,8 @@ public:
 	void ApplyJumpToZ(float, float, float);
 
 	void FireProjectile(ProjectileType);
+
+	void UseMeleeAttack(MeleeAttackType);
 
 	UFUNCTION()
 	void OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

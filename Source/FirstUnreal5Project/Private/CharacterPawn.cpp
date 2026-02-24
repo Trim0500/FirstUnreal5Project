@@ -174,6 +174,18 @@ void ACharacterPawn::FireProjectile(ProjectileType ProjectileType)
 	}
 }
 
+void ACharacterPawn::UseMeleeAttack(MeleeAttackType MeleeAttackType)
+{
+	/*
+	* [PC-05]: TODO
+	*			Implement melee attack functionality.
+	*
+	*			This will likely involve spawning a hitbox in front of the character that can interact with enemies and other objects.
+	*			
+	*			The hitbox will be active for a short duration and will be spawned in front of the character based on the character's forward vector.
+	*/
+}
+
 void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor != nullptr && OtherActor->ActorHasTag("Floor"))
