@@ -30,6 +30,11 @@ void APlayerCharacterController::SetupInputComponent()
 		EnhancedInputComponenet->BindAction(Jump, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedJump);
 		EnhancedInputComponenet->BindAction(FireLightProjectile, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedFireLightProjectile);
 		EnhancedInputComponenet->BindAction(FireHeavyProjectile, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedFireHeavyProjectile);
+
+		/*
+		* [PC-05]: TODO
+		*			Bind melee attack input actions to their respective functions here once they are implemented
+		*/
 	}
 }
 
@@ -119,4 +124,36 @@ void APlayerCharacterController::EnhancedFireHeavyProjectile(const FInputActionV
 			CharacterPawn->FireProjectile(ProjectileType::Heavy);
 		}
 	}
+}
+
+void APlayerCharacterController::EnhancedUseMeleeAttackOne(const FInputActionValue& value)
+{
+	/*
+	* [PC-05]: TODO
+	*			Call the character pawn's melee attack function for the first melee attack once it is implemented
+	*/
+}
+
+void APlayerCharacterController::EnhancedUseMeleeAttackTwo(const FInputActionValue& value)
+{
+	/*
+	* [PC-05]: TODO
+	*			Call the character pawn's melee attack function for the second melee attack once it is implemented
+	*/
+}
+
+void APlayerCharacterController::EnhancedUseMeleeAttackThree(const FInputActionValue& value)
+{
+	/*
+	* [PC-05]: TODO
+	*			Call the character pawn's melee attack function for the third melee attack once it is implemented
+	*/
+}
+
+void APlayerCharacterController::EnhancedUseMeleeAttackFour(const FInputActionValue& value)
+{
+	/*
+	* [PC-05]: TODO
+	*			Call the character pawn's melee attack function for the fourth melee attack once it is implemented
+	*/
 }
