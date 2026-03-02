@@ -28,6 +28,24 @@ void ACharacterPawn::BeginPlay()
 	JumpVelocity = (2 * PeakJumpHeight) / TimeToPeakJump;
 
 	EnableFeetOverlapEvents(false, true);
+
+	for (const FAttackInfo& Info : AttackInfoArray)
+	{
+		if (Info.AttackClass != nullptr && !MeleeAttackMap.Contains(Info.AttackType))
+		{
+			MeleeAttackMap.Add(Info.AttackType, Info.AttackClass);
+
+			switch (Info.AttackType)
+			{
+				case ESpawnableAttack::MeleeOne:
+					MeleeAttackRotatorMap.Add(Info.AttackType, FRotator(0.0f, 0.0f, 45.0f));
+					
+					break;
+				default:
+					break;
+			}
+		}
+	}
 }
 
 // Called every frame
@@ -174,16 +192,12 @@ void ACharacterPawn::FireProjectile(ProjectileType ProjectileType)
 	}
 }
 
-void ACharacterPawn::UseMeleeAttack(MeleeAttackType MeleeAttackType)
+void ACharacterPawn::UseMeleeAttack(ESpawnableAttack::Type EMeleeAttackType)
 {
-	/*
-	* [PC-05]: TODO
-	*			Implement melee attack functionality.
-	*
-	*			This will likely involve spawning a hitbox in front of the character that can interact with enemies and other objects.
-	*			
-	*			The hitbox will be active for a short duration and will be spawned in front of the character based on the character's forward vector.
-	*/
+	if (MeleeAttackMap.Contains(EMeleeAttackType))
+	{
+		SpawnAttack(EMeleeAttackType, 50.f, MeleeAttackRotatorMap[EMeleeAttackType]);
+	}
 }
 
 void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -200,7 +214,9 @@ void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AAc
 
 		bIsJumping = false;
 
-		Cast<APlayerCharacterController>(GetController())->bIsJumpAvailable = true;
+		auto PlayerController = Cast<APlayerCharacterController>(GetController());
+		PlayerController->bIsJumpAvailable = true;
+		PlayerController->bIsMeleeAvailable = true;
 	}
 }
 
@@ -226,6 +242,35 @@ void ACharacterPawn::EnableFeetOverlapEvents(bool enable, bool mapOverlapFunctio
 			{
 				groundDetectorPtr->OnComponentBeginOverlap.AddDynamic(this, &ACharacterPawn::OnFeetOverlapBegin);
 			}
+		}
+	}
+}
+
+void ACharacterPawn::SpawnAttack(ESpawnableAttack::Type AttackType, float SpawnDistance, FRotator Rotator)
+{
+	if (TSubclassOf<AActor>* AttackClass = MeleeAttackMap.Find(AttackType))
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		SpawnParams.Owner = this;
+
+		FVector SpawnLocation;
+
+		FVector MeshForwardVector;
+		
+		FRotator MeshRotation;
+		
+		TArray<UActorComponent*> Mesh = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("PlayerMesh"));
+		if (Mesh.Num() > 0)
+		{
+			auto StaticMeshComponent = Cast<UStaticMeshComponent>(Mesh[0]);
+			SpawnLocation = StaticMeshComponent->GetComponentLocation();
+			
+			MeshForwardVector = StaticMeshComponent->GetForwardVector();
+			SpawnLocation += MeshForwardVector * SpawnDistance;
+			
+			MeshRotation = StaticMeshComponent->GetComponentRotation();
+			GetWorld()->SpawnActor<AActor>(*AttackClass, SpawnLocation, MeshRotation + Rotator, SpawnParams);
 		}
 	}
 }

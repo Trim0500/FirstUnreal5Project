@@ -30,6 +30,7 @@ void APlayerCharacterController::SetupInputComponent()
 		EnhancedInputComponenet->BindAction(Jump, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedJump);
 		EnhancedInputComponenet->BindAction(FireLightProjectile, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedFireLightProjectile);
 		EnhancedInputComponenet->BindAction(FireHeavyProjectile, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedFireHeavyProjectile);
+		EnhancedInputComponenet->BindAction(MeleeAttackOne, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseMeleeAttackOne);
 
 		/*
 		* [PC-05]: TODO
@@ -88,6 +89,8 @@ void APlayerCharacterController::EnhancedJump(const FInputActionValue& value)
 		{
 			bIsJumpAvailable = false;
 
+			bIsMeleeAvailable = false;
+
 			UseJump();
 		}
 	}
@@ -128,10 +131,17 @@ void APlayerCharacterController::EnhancedFireHeavyProjectile(const FInputActionV
 
 void APlayerCharacterController::EnhancedUseMeleeAttackOne(const FInputActionValue& value)
 {
-	/*
-	* [PC-05]: TODO
-	*			Call the character pawn's melee attack function for the first melee attack once it is implemented
-	*/
+	if (EInputActionValueType::Boolean == value.GetValueType())
+	{
+		if (bIsMeleeAvailable)
+		{
+			ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
+			if (CharacterPawn != nullptr)
+			{
+				CharacterPawn->UseMeleeAttack(ESpawnableAttack::MeleeOne);
+			}
+		}
+	}
 }
 
 void APlayerCharacterController::EnhancedUseMeleeAttackTwo(const FInputActionValue& value)
@@ -156,4 +166,25 @@ void APlayerCharacterController::EnhancedUseMeleeAttackFour(const FInputActionVa
 	* [PC-05]: TODO
 	*			Call the character pawn's melee attack function for the fourth melee attack once it is implemented
 	*/
+}
+
+void APlayerCharacterController::ApplyInputMappingContext(TSoftObjectPtr<UInputMappingContext>& _inputMappingContext, int Priority, bool bAddContext)
+{
+	if (ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* InputSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+		{
+			if (!_inputMappingContext.IsNull())
+			{
+				if (!bAddContext)
+				{
+					InputSystem->RemoveMappingContext(_inputMappingContext.LoadSynchronous());
+				}
+				else
+				{
+					InputSystem->AddMappingContext(_inputMappingContext.LoadSynchronous(), Priority);
+				}
+			}
+		}
+	}
 }

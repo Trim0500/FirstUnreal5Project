@@ -2,9 +2,12 @@
 
 #pragma once
 
+#include "PlayerCharacterController.h"
+
 #include "EnhancedInput/Public/EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -70,4 +73,6 @@ private:
 	bool bPastRecoveryFrames;
 	
 	bool bPastCancelRecoveryFrames;
+
+	APlayerCharacterController* PlayerCharacterControllerRef;
 };

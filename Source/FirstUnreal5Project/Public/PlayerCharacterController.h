@@ -92,4 +92,6 @@ public:
 	void EnhancedUseMeleeAttackThree(const FInputActionValue& value);
 
 	void EnhancedUseMeleeAttackFour(const FInputActionValue& value);
+
+	void ApplyInputMappingContext(TSoftObjectPtr<UInputMappingContext>&, int, bool);
 };

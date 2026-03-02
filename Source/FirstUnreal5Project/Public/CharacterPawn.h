@@ -12,12 +12,28 @@ enum ProjectileType
 	Heavy
 };
 
-enum MeleeAttackType
+UENUM(BlueprintType)
+namespace ESpawnableAttack
 {
-	MeleeAttackOne,
-	MeleeAttackTwo,
-	MeleeAttackThree,
-	MeleeAttackFour
+	enum Type
+	{
+		MeleeOne,
+		MeleeTwo,
+		MeleeThree,
+		MeleeFour
+	};
+}
+
+USTRUCT(BlueprintType)
+struct FAttackInfo
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
+	TEnumAsByte<ESpawnableAttack::Type> AttackType;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
+	TSubclassOf<AActor> AttackClass;
 };
 
 UCLASS()
@@ -45,22 +61,9 @@ public:
 	/** Class reference to heavy projectile spawner to spawn heavy projectiles when firing heavy projectile action is triggered */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Weapons")
 	TSubclassOf<AActor> HeavyProjectileClass;
-	
-	/** Class reference to first melee attack to spawn in after respective trigger */
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
-	TSubclassOf<AActor> MeleeAttackOne;
-	
-	/** Class reference to second melee attack to spawn in after respective trigger */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
-	TSubclassOf<AActor> MeleeAttackTwo;
-	
-	/** Class reference to third melee attack to spawn in after respective trigger */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
-	TSubclassOf<AActor> MeleeAttackThree;
-	
-	/** Class reference to fourth melee attack to spawn in after respective trigger */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
-	TSubclassOf<AActor> MeleeAttackFour;
+	TArray<FAttackInfo> AttackInfoArray;
 
 	// Sets default values for this pawn's properties
 	ACharacterPawn();
@@ -83,7 +86,7 @@ public:
 
 	void FireProjectile(ProjectileType);
 
-	void UseMeleeAttack(MeleeAttackType);
+	void UseMeleeAttack(ESpawnableAttack::Type);
 
 	UFUNCTION()
 	void OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -99,8 +102,13 @@ private:
 
 	float JumpStartZ;
 
+	TMap<TEnumAsByte<ESpawnableAttack::Type>, TSubclassOf<AActor>> MeleeAttackMap;
+
+	TMap<TEnumAsByte<ESpawnableAttack::Type>, FRotator> MeleeAttackRotatorMap;
+
 	void EnableGravity(bool);
 
 	void EnableFeetOverlapEvents(bool, bool);
 
+	void SpawnAttack(ESpawnableAttack::Type, float, FRotator);
 };

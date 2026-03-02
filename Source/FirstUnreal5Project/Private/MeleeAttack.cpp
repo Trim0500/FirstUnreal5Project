@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "MeleeAttack.h"
 
 // Sets default values
@@ -16,16 +15,24 @@ void AMeleeAttack::BeginPlay()
 {
 	Super::BeginPlay();
 
-	/*
-	* [PC-05]: TODO
-	*			Set the frame counter
-	* 
-	*			Set the flags for exceeding startup, active, and recovery frames to false
-	* 
-	*			Make actor invisible and non-collidable until startup frames are exceeded
-	* 
-	*			Get the reference to player controller and add a new input mapping context
-	*/
+	TotalFrameTime = 0.0f;
+
+	bPastActiveFrames = false;
+
+	bPastRecoveryFrames = false;
+
+	bPastCancelRecoveryFrames = false;
+
+	SetActorHiddenInGame(true);
+
+	SetActorEnableCollision(false);
+
+	PlayerCharacterControllerRef = Cast<APlayerCharacterController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+
+	if (PlayerCharacterControllerRef != nullptr)
+	{
+		PlayerCharacterControllerRef->ApplyInputMappingContext(AttackInputMapping, 2, true);
+	}
 }
 
 // Called every frame
@@ -33,20 +40,50 @@ void AMeleeAttack::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	/*
-	* [PC-05]: TODO
-	*			Increment frame counter by DeltaTime
-	* 
-	*			Establish logic gates for exceeding recovery, active, and startup frames.
-	* 
-	*			When Lifettime attack frames are exceeded, destroy the actor 
-	* 
-	*			When cancel recovery frames are exceeded, revoke mapping context for this attack from player controller and set exceeded cancel recovery frames flag to true to prevent this logic gate from re-entered
-	*				if another attack may come after this one in a defined sequence, get reference to player controller and replace mapping context for this attack with mapping context for next attack in sequence
-	*				if another attack may not come after this one in a defined sequence, destroy the actor
-	* 
-	*			When recovery frames are exceeded, set mesh to be invisible and non-collidable and set exceeded recovery frames flag to true to prevent this logic gate from being re-entered
-	* 
-	*			When active frames are exceeded, set the actor to be visible and collidable and set exceeded active frames flag to true to prevent this logic gate from being re-entered
-	*/
+	TotalFrameTime += DeltaTime;
+
+	if (TotalFrameTime >= LifetimeFrameThreshold && bNextAttackExists)
+	{
+		check(PlayerCharacterControllerRef);
+		
+		PlayerCharacterControllerRef->ApplyInputMappingContext(NextAttackInputMapping, 0, false);
+
+		Destroy();
+	}
+
+	if (TotalFrameTime >= CancelRecoveryFrameThreshold && !bPastCancelRecoveryFrames)
+	{
+		bPastCancelRecoveryFrames = true;
+
+		check(PlayerCharacterControllerRef);
+
+		PlayerCharacterControllerRef->ApplyInputMappingContext(AttackInputMapping, 0, false);
+
+		if (bNextAttackExists)
+		{
+			PlayerCharacterControllerRef->ApplyInputMappingContext(NextAttackInputMapping, 1, true);
+		}
+		else
+		{
+			Destroy();
+		}
+	}
+
+	if (TotalFrameTime >= RecoveryFrameThreshold && !bPastRecoveryFrames)
+	{
+		bPastRecoveryFrames = true;
+
+		SetActorHiddenInGame(true);
+
+		SetActorEnableCollision(false);
+	}
+
+	if (TotalFrameTime >= StartUpFrameThreshold && !bPastActiveFrames)
+	{
+		bPastActiveFrames = true;
+
+		SetActorHiddenInGame(false);
+
+		SetActorEnableCollision(true);
+	}
 }
