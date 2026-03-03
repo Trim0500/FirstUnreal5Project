@@ -50,6 +50,10 @@ void ACharacterPawn::BeginPlay()
 					MeleeAttackRotatorMap.Add(Info.AttackType, FRotator(0.0f, 0.0f, 150.0f));
 					
 					break;
+				case ESpawnableAttack::MeleeFour:
+					MeleeAttackRotatorMap.Add(Info.AttackType, FRotator(0.0f, 0.0f, 180.0f));
+					
+					break;
 				default:
 					break;
 			}
