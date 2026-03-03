@@ -31,6 +31,7 @@ void APlayerCharacterController::SetupInputComponent()
 		EnhancedInputComponenet->BindAction(FireHeavyProjectile, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedFireHeavyProjectile);
 		EnhancedInputComponenet->BindAction(MeleeAttackOne, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseMeleeAttackOne);
 		EnhancedInputComponenet->BindAction(MeleeAttackTwo, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseMeleeAttackTwo);
+		EnhancedInputComponenet->BindAction(MeleeAttackThree, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseMeleeAttackThree);
 
 		/*
 		* [PC-05]: TODO
@@ -141,10 +142,7 @@ void APlayerCharacterController::EnhancedUseMeleeAttackTwo(const FInputActionVal
 
 void APlayerCharacterController::EnhancedUseMeleeAttackThree(const FInputActionValue& value)
 {
-	/*
-	* [PC-05]: TODO
-	*			Call the character pawn's melee attack function for the third melee attack once it is implemented
-	*/
+	UseMeleeAttack(value, ESpawnableAttack::MeleeThree);
 }
 
 void APlayerCharacterController::EnhancedUseMeleeAttackFour(const FInputActionValue& value)
