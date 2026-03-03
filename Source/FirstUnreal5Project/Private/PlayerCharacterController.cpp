@@ -4,7 +4,6 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "PlayerCharacterController.h"
-#include "CharacterPawn.h"
 
 void APlayerCharacterController::SetupInputComponent()
 {
@@ -31,6 +30,7 @@ void APlayerCharacterController::SetupInputComponent()
 		EnhancedInputComponenet->BindAction(FireLightProjectile, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedFireLightProjectile);
 		EnhancedInputComponenet->BindAction(FireHeavyProjectile, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedFireHeavyProjectile);
 		EnhancedInputComponenet->BindAction(MeleeAttackOne, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseMeleeAttackOne);
+		EnhancedInputComponenet->BindAction(MeleeAttackTwo, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseMeleeAttackTwo);
 
 		/*
 		* [PC-05]: TODO
@@ -131,25 +131,12 @@ void APlayerCharacterController::EnhancedFireHeavyProjectile(const FInputActionV
 
 void APlayerCharacterController::EnhancedUseMeleeAttackOne(const FInputActionValue& value)
 {
-	if (EInputActionValueType::Boolean == value.GetValueType())
-	{
-		if (bIsMeleeAvailable)
-		{
-			ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
-			if (CharacterPawn != nullptr)
-			{
-				CharacterPawn->UseMeleeAttack(ESpawnableAttack::MeleeOne);
-			}
-		}
-	}
+	UseMeleeAttack(value, ESpawnableAttack::MeleeOne);
 }
 
 void APlayerCharacterController::EnhancedUseMeleeAttackTwo(const FInputActionValue& value)
 {
-	/*
-	* [PC-05]: TODO
-	*			Call the character pawn's melee attack function for the second melee attack once it is implemented
-	*/
+	UseMeleeAttack(value, ESpawnableAttack::MeleeTwo);
 }
 
 void APlayerCharacterController::EnhancedUseMeleeAttackThree(const FInputActionValue& value)
@@ -184,6 +171,21 @@ void APlayerCharacterController::ApplyInputMappingContext(TSoftObjectPtr<UInputM
 				{
 					InputSystem->AddMappingContext(_inputMappingContext.LoadSynchronous(), Priority);
 				}
+			}
+		}
+	}
+}
+
+void APlayerCharacterController::UseMeleeAttack(const FInputActionValue& Value, ESpawnableAttack::Type EMeleeAttackType)
+{
+	if (EInputActionValueType::Boolean == Value.GetValueType())
+	{
+		if (bIsMeleeAvailable)
+		{
+			ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
+			if (CharacterPawn != nullptr)
+			{
+				CharacterPawn->UseMeleeAttack(EMeleeAttackType);
 			}
 		}
 	}

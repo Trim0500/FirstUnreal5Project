@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "CharacterPawn.h"
+
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "EnhancedInput/Public/EnhancedInputComponent.h"
@@ -94,4 +96,6 @@ public:
 	void EnhancedUseMeleeAttackFour(const FInputActionValue& value);
 
 	void ApplyInputMappingContext(TSoftObjectPtr<UInputMappingContext>&, int, bool);
+private:
+	void UseMeleeAttack(const FInputActionValue&, ESpawnableAttack::Type);
 };
