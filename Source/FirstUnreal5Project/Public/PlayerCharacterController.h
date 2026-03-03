@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "CharacterPawn.h"
+
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "EnhancedInput/Public/EnhancedInputComponent.h"
@@ -37,6 +39,22 @@ public:
 	/** Input Action asset to map controller input to firing heavy projectile action */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( Attacks )")
 	UInputAction* FireHeavyProjectile;
+	
+	/** Input Action asset to map controller input to using melee attack ( 1/4 ) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( Attacks )")
+	UInputAction* MeleeAttackOne;
+	
+	/** Input Action asset to map controller input to using melee attack ( 2/4 ) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( Attacks )")
+	UInputAction* MeleeAttackTwo;
+	
+	/** Input Action asset to map controller input to using melee attack ( 3/4 ) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( Attacks )")
+	UInputAction* MeleeAttackThree;
+	
+	/** Input Action asset to map controller input to using melee attack ( 4/4 ) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( Attacks )")
+	UInputAction* MeleeAttackFour;
 
 	/** Input Mapping Context asset for neutral player character state */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Context")
@@ -45,6 +63,10 @@ public:
 	/** Can this controller use a jump action? */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Flags")
 	bool bIsJumpAvailable;
+
+	/** Can this controller use a melee action? */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Flags")
+	bool bIsMeleeAvailable;
 
 	// Called to bind functionality to input
 	virtual void SetupInputComponent() override;
@@ -64,4 +86,16 @@ public:
 	void EnhancedFireLightProjectile(const FInputActionValue& value);
 
 	void EnhancedFireHeavyProjectile(const FInputActionValue& value);
+	
+	void EnhancedUseMeleeAttackOne(const FInputActionValue& value);
+
+	void EnhancedUseMeleeAttackTwo(const FInputActionValue& value);
+
+	void EnhancedUseMeleeAttackThree(const FInputActionValue& value);
+
+	void EnhancedUseMeleeAttackFour(const FInputActionValue& value);
+
+	void ApplyInputMappingContext(TSoftObjectPtr<UInputMappingContext>&, int, bool);
+private:
+	void UseAttack(const FInputActionValue&, ESpawnableAttack::EType);
 };

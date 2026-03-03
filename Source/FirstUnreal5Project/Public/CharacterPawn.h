@@ -12,6 +12,32 @@ enum ProjectileType
 	Heavy
 };
 
+UENUM(BlueprintType)
+namespace ESpawnableAttack
+{
+	enum EType
+	{
+		ProjectileLight,
+		ProjectileHeavy,
+		MeleeOne,
+		MeleeTwo,
+		MeleeThree,
+		MeleeFour
+	};
+}
+
+USTRUCT(BlueprintType)
+struct FAttackInfo
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
+	TEnumAsByte<ESpawnableAttack::EType> AttackType;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
+	TSubclassOf<AActor> AttackClass;
+};
+
 UCLASS()
 class FIRSTUNREAL5PROJECT_API ACharacterPawn : public APawn
 {
@@ -38,6 +64,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Weapons")
 	TSubclassOf<AActor> HeavyProjectileClass;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
+	TArray<FAttackInfo> AttackInfoArray;
+
 	// Sets default values for this pawn's properties
 	ACharacterPawn();
 
@@ -59,6 +88,8 @@ public:
 
 	void FireProjectile(ProjectileType);
 
+	void Attack(ESpawnableAttack::EType);
+
 	UFUNCTION()
 	void OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
@@ -73,8 +104,13 @@ private:
 
 	float JumpStartZ;
 
+	TMap<TEnumAsByte<ESpawnableAttack::EType>, TSubclassOf<AActor>> AttackMap;
+
+	TMap<TEnumAsByte<ESpawnableAttack::EType>, FRotator> MeleeAttackRotatorMap;
+
 	void EnableGravity(bool);
 
 	void EnableFeetOverlapEvents(bool, bool);
 
+	void SpawnAttack(ESpawnableAttack::EType, float, FRotator);
 };
