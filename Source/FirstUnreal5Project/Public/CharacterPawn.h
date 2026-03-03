@@ -15,8 +15,10 @@ enum ProjectileType
 UENUM(BlueprintType)
 namespace ESpawnableAttack
 {
-	enum Type
+	enum EType
 	{
+		ProjectileLight,
+		ProjectileHeavy,
 		MeleeOne,
 		MeleeTwo,
 		MeleeThree,
@@ -30,7 +32,7 @@ struct FAttackInfo
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
-	TEnumAsByte<ESpawnableAttack::Type> AttackType;
+	TEnumAsByte<ESpawnableAttack::EType> AttackType;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
 	TSubclassOf<AActor> AttackClass;
@@ -86,7 +88,7 @@ public:
 
 	void FireProjectile(ProjectileType);
 
-	void UseMeleeAttack(ESpawnableAttack::Type);
+	void Attack(ESpawnableAttack::EType);
 
 	UFUNCTION()
 	void OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -102,13 +104,13 @@ private:
 
 	float JumpStartZ;
 
-	TMap<TEnumAsByte<ESpawnableAttack::Type>, TSubclassOf<AActor>> MeleeAttackMap;
+	TMap<TEnumAsByte<ESpawnableAttack::EType>, TSubclassOf<AActor>> AttackMap;
 
-	TMap<TEnumAsByte<ESpawnableAttack::Type>, FRotator> MeleeAttackRotatorMap;
+	TMap<TEnumAsByte<ESpawnableAttack::EType>, FRotator> MeleeAttackRotatorMap;
 
 	void EnableGravity(bool);
 
 	void EnableFeetOverlapEvents(bool, bool);
 
-	void SpawnAttack(ESpawnableAttack::Type, float, FRotator);
+	void SpawnAttack(ESpawnableAttack::EType, float, FRotator);
 };

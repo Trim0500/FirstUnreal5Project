@@ -31,9 +31,9 @@ void ACharacterPawn::BeginPlay()
 
 	for (const FAttackInfo& Info : AttackInfoArray)
 	{
-		if (Info.AttackClass != nullptr && !MeleeAttackMap.Contains(Info.AttackType))
+		if (Info.AttackClass != nullptr && !AttackMap.Contains(Info.AttackType))
 		{
-			MeleeAttackMap.Add(Info.AttackType, Info.AttackClass);
+			AttackMap.Add(Info.AttackType, Info.AttackClass);
 
 			switch (Info.AttackType)
 			{
@@ -205,11 +205,11 @@ void ACharacterPawn::FireProjectile(ProjectileType ProjectileType)
 	}
 }
 
-void ACharacterPawn::UseMeleeAttack(ESpawnableAttack::Type EMeleeAttackType)
+void ACharacterPawn::Attack(ESpawnableAttack::EType EAttackType)
 {
-	if (MeleeAttackMap.Contains(EMeleeAttackType))
+	if (AttackMap.Contains(EAttackType))
 	{
-		SpawnAttack(EMeleeAttackType, 50.f, MeleeAttackRotatorMap[EMeleeAttackType]);
+		SpawnAttack(EAttackType, 50.f, EAttackType > ESpawnableAttack::ProjectileHeavy ? MeleeAttackRotatorMap[EAttackType] : FRotator());
 	}
 }
 
@@ -259,9 +259,9 @@ void ACharacterPawn::EnableFeetOverlapEvents(bool enable, bool mapOverlapFunctio
 	}
 }
 
-void ACharacterPawn::SpawnAttack(ESpawnableAttack::Type AttackType, float SpawnDistance, FRotator Rotator)
+void ACharacterPawn::SpawnAttack(ESpawnableAttack::EType AttackType, float SpawnDistance, FRotator Rotator)
 {
-	if (TSubclassOf<AActor>* AttackClass = MeleeAttackMap.Find(AttackType))
+	if (TSubclassOf<AActor>* AttackClass = AttackMap.Find(AttackType))
 	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;

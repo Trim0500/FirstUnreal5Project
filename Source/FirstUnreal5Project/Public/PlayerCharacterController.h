@@ -97,5 +97,5 @@ public:
 
 	void ApplyInputMappingContext(TSoftObjectPtr<UInputMappingContext>&, int, bool);
 private:
-	void UseMeleeAttack(const FInputActionValue&, ESpawnableAttack::Type);
+	void UseAttack(const FInputActionValue&, ESpawnableAttack::EType);
 };

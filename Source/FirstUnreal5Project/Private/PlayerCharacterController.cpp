@@ -104,46 +104,32 @@ void APlayerCharacterController::UseJump()
 
 void APlayerCharacterController::EnhancedFireLightProjectile(const FInputActionValue& value)
 {
-	if (EInputActionValueType::Boolean == value.GetValueType())
-	{
-		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
-		if (CharacterPawn != nullptr)
-		{
-			CharacterPawn->FireProjectile(ProjectileType::Light);
-		}
-	}
+	UseAttack(value, ESpawnableAttack::ProjectileLight);
 }
 
 void APlayerCharacterController::EnhancedFireHeavyProjectile(const FInputActionValue& value)
 {
-	if (EInputActionValueType::Boolean == value.GetValueType())
-	{
-		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
-		if (CharacterPawn != nullptr)
-		{
-			CharacterPawn->FireProjectile(ProjectileType::Heavy);
-		}
-	}
+	UseAttack(value, ESpawnableAttack::ProjectileHeavy);
 }
 
 void APlayerCharacterController::EnhancedUseMeleeAttackOne(const FInputActionValue& value)
 {
-	UseMeleeAttack(value, ESpawnableAttack::MeleeOne);
+	UseAttack(value, ESpawnableAttack::MeleeOne);
 }
 
 void APlayerCharacterController::EnhancedUseMeleeAttackTwo(const FInputActionValue& value)
 {
-	UseMeleeAttack(value, ESpawnableAttack::MeleeTwo);
+	UseAttack(value, ESpawnableAttack::MeleeTwo);
 }
 
 void APlayerCharacterController::EnhancedUseMeleeAttackThree(const FInputActionValue& value)
 {
-	UseMeleeAttack(value, ESpawnableAttack::MeleeThree);
+	UseAttack(value, ESpawnableAttack::MeleeThree);
 }
 
 void APlayerCharacterController::EnhancedUseMeleeAttackFour(const FInputActionValue& value)
 {
-	UseMeleeAttack(value, ESpawnableAttack::MeleeFour);
+	UseAttack(value, ESpawnableAttack::MeleeFour);
 }
 
 void APlayerCharacterController::ApplyInputMappingContext(TSoftObjectPtr<UInputMappingContext>& _inputMappingContext, int Priority, bool bAddContext)
@@ -167,16 +153,16 @@ void APlayerCharacterController::ApplyInputMappingContext(TSoftObjectPtr<UInputM
 	}
 }
 
-void APlayerCharacterController::UseMeleeAttack(const FInputActionValue& Value, ESpawnableAttack::Type EMeleeAttackType)
+void APlayerCharacterController::UseAttack(const FInputActionValue& Value, ESpawnableAttack::EType EAttackType)
 {
 	if (EInputActionValueType::Boolean == Value.GetValueType())
 	{
-		if (bIsMeleeAvailable)
+		if (EAttackType < ESpawnableAttack::MeleeOne || bIsMeleeAvailable)
 		{
 			ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
 			if (CharacterPawn != nullptr)
 			{
-				CharacterPawn->UseMeleeAttack(EMeleeAttackType);
+				CharacterPawn->Attack(EAttackType);
 			}
 		}
 	}
