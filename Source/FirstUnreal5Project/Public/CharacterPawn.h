@@ -6,6 +6,10 @@
 #include "GameFramework/Pawn.h"
 #include "CharacterPawn.generated.h"
 
+/*
+* [PC-06]: TODO
+*			Legacy code for projectiles, can be removed
+*/
 enum ProjectileType
 {
 	Light,
@@ -23,6 +27,10 @@ namespace ESpawnableAttack
 		MeleeTwo,
 		MeleeThree,
 		MeleeFour
+		/*
+		* [PC-06]: TODO
+		*			Add in new enum value for lunge attack
+		*/
 	};
 }
 
@@ -38,6 +46,13 @@ struct FAttackInfo
 	TSubclassOf<AActor> AttackClass;
 };
 
+/*
+* [PC-06]: TODO
+* 			Add in new struct for array of lock-on targets that the player can cycle through when lock-on is active
+* 
+*			Should be comprised of a reference to the target actor and it's transform in world space
+*/
+
 UCLASS()
 class FIRSTUNREAL5PROJECT_API ACharacterPawn : public APawn
 {
@@ -47,6 +62,10 @@ public:
 	/** Set scale for horizontal movement ( in cm ) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
 	float MoveScale;
+	
+	/** Set scale for lock-on movement reduction ( [0.0 - 1.0] ) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
+	float LockOnMoveReductionScale;
 
 	/** Set peak height to add when jumping ( in cm ) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
@@ -56,6 +75,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
 	float TimeToPeakJump;
 
+	/*
+	* [PC-06]: TODO
+	*			Legacy code for projectiles, can be removed
+	*/
 	/** Class reference to light projectile spawner to spawn light projectiles when firing light projectile action is triggered */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Weapons")
 	TSubclassOf<AActor> LightProjectileClass;
@@ -66,6 +89,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
 	TArray<FAttackInfo> AttackInfoArray;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Properties")
+	float MaxLockOnDistance;
 
 	// Sets default values for this pawn's properties
 	ACharacterPawn();
@@ -90,6 +116,10 @@ public:
 
 	void Attack(ESpawnableAttack::EType);
 
+	void ToggleLockOn(bool);
+
+	void CycleLockOnTarget();
+
 	UFUNCTION()
 	void OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
@@ -108,9 +138,24 @@ private:
 
 	TMap<TEnumAsByte<ESpawnableAttack::EType>, FRotator> MeleeAttackRotatorMap;
 
+	/*
+	* [PC-06]: TODO
+	*			Add in new private member variable for array of lock-on targets that the player can cycle through when lock-on is active
+	*/
+
+	int CurrentLockOnTargetIndex;
+
+	bool bIsLockOnActive;
+
 	void EnableGravity(bool);
 
 	void EnableFeetOverlapEvents(bool, bool);
 
 	void SpawnAttack(ESpawnableAttack::EType, float, FRotator);
+
+	void ApplyLockOnRotation();
+
+	void CalculateLockOnTargets(bool);
+
+	void AdjustCameraForLockOn();
 };

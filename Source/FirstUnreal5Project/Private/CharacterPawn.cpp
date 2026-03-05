@@ -59,12 +59,25 @@ void ACharacterPawn::BeginPlay()
 			}
 		}
 	}
+
+	/*
+	* [PC-06]: TODO
+	*			Set current lock-on target index to 0
+	*			Set lock-on active to false
+	*/
 }
 
 // Called every frame
 void ACharacterPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	/*
+	* [PC-06]: TODO
+	*			Assuming that lock-on is active need to do the following
+	*				Call ApplyLockOnRotation
+	*				Call AdjustCameraForLockOn
+	*/
 
 	if (bIsJumping)
 	{
@@ -213,6 +226,37 @@ void ACharacterPawn::Attack(ESpawnableAttack::EType EAttackType)
 	}
 }
 
+void ACharacterPawn::ToggleLockOn(bool bActivateLockOn)
+{
+	/*
+	* [PC-06]: TODO
+	*			Implement logic for character pawn to toggle lock-on state when lock-on is enabled/disabled 
+	*				If enabled:
+	*					Set lock-on active boolean to true
+	*					Calculate lock-on targets to populate array
+	*					Select first lock-on target from array as current lock-on target
+	*					Keep track of the current lock-on target index in the array to allow for cycling through targets when lock-on is active
+	* 
+	*				If disabled:
+	*					Reset the lock-on target index
+	*					Clear lock-on target
+	*					Clear lock-on target array
+	*					Set lock-on flag to false
+	*/
+}
+
+void ACharacterPawn::CycleLockOnTarget()
+{
+	/*
+	* [PC-06]: TODO
+	* 			Implement logic for character pawn to cycle through lock-on targets
+	* 
+	*			Calculate lock-on targets, passing over current lock-on target and all others that came before
+	*			Set next target in array as current lock-on target
+	*			Increment lock-on target index, use modulo with length of lock-on target array to loop back to beginning of array if index exceeds array length
+	*/
+}
+
 void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor != nullptr && OtherActor->ActorHasTag("Floor"))
@@ -286,4 +330,44 @@ void ACharacterPawn::SpawnAttack(ESpawnableAttack::EType AttackType, float Spawn
 			GetWorld()->SpawnActor<AActor>(*AttackClass, SpawnLocation, MeshRotation + Rotator, SpawnParams);
 		}
 	}
+}
+
+void ACharacterPawn::ApplyLockOnRotation()
+{
+	/*
+	* [PC-06]: TODO
+	*			Implement lock-on rotation logic to rotate the player to face the current lock-on target when lock-on is active
+	* 
+	*			Use the current lock-on target's location and the player's location and determine the rotation that must be applied to the player to face the lock-on target
+	*			Once calculated, add the result to the pawn's current rotation to rotate the player to face the lock-on target
+	*/			
+}
+
+void ACharacterPawn::CalculateLockOnTargets(bool bCycleTriggered)
+{
+	/*
+	* [PC-06]: TODO
+	*			Implement lock-on target calculation logic to populate array of lock-on targets when lock-on is enabled and when cycling through lock-on targets
+	* 
+	*			If target cycling was triggered:
+	*				Grab current lock-on target reference by index and all previous targets in the lock-on target array
+	*				Begin creation of new lock-on target array starting with previous lock-on targets up to and including current lock-on target
+	*				Recalculate new lock-on targets by locating actors with valid tag and within maxmimum target range
+	*				Append list
+	* 
+	*			If target cycling was not triggered:
+	*				Recalculate new lock-on targets by locating actors with valid tag and within maxmimum target range
+	*/
+}
+
+void ACharacterPawn::AdjustCameraForLockOn()
+{
+	/*
+	* [PC-06]: TODO
+	*			Implement camera adjustment logic to adjust the camera position and rotation when lock-on is active to better frame the current lock-on target
+	* 
+	*			Find the current lock-on target's location by querying lock-on target array with current lock-on target index
+	*			Use midpoint formula to find the midpoint between the player and the current lock-on target in world space
+	* 			Set the camera's location to the midpoint location, maintaining the camera's current height
+	*/
 }
