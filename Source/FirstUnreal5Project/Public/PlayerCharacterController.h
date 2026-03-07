@@ -87,6 +87,10 @@ public:
 	/** Can this controller use a jump action? */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Flags")
 	bool bIsJumpAvailable;
+	
+	/** Can this controller use a jump action? */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Flags")
+	bool bIsDodgeAvailable;
 
 	/** Can this controller use a melee action? */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Flags")

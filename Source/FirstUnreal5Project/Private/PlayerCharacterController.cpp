@@ -11,12 +11,12 @@ void APlayerCharacterController::SetupInputComponent()
 
 	check(InputComponent != nullptr);
 
+	// TODO [PC-06]
 	/*
-	* [PC-06]: TODO
-	*			Refactor to use the ApplyInputMappingContext function and map the neutral input mapping context to the player character controller
+	*	Refactor to use the ApplyInputMappingContext function and map the neutral input mapping context to the player character controller
 	*
-	*			Change priority of neutral input mapping context to be lower than the priority of the combat input mapping context
-	*				Keep the priority in a new constants file and use it in both the player character controller and the input mapping contexts
+	*	Change priority of neutral input mapping context to be lower than the priority of the combat input mapping context
+	*		Keep the priority in a new constants file and use it in both the player character controller and the input mapping contexts
 	*/
 	if (ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player))
 	{
@@ -41,9 +41,9 @@ void APlayerCharacterController::SetupInputComponent()
 		EnhancedInputComponenet->BindAction(MeleeAttackThree, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseMeleeAttackThree);
 		EnhancedInputComponenet->BindAction(MeleeAttackFour, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseMeleeAttackFour);
 
+		// TODO [PC-06]
 		/*
-		* [PC-06]: TODO
-		*			Map input actions for dodge, lunge and lock-on state changes
+		*	Map input actions for dodge, lunge and lock-on state changes
 		*/
 	}
 }
@@ -146,57 +146,57 @@ void APlayerCharacterController::EnhancedUseMeleeAttackFour(const FInputActionVa
 
 void APlayerCharacterController::EnhancedUseDodge(const FInputActionValue& value)
 {
+	// TODO [PC-06]
 	/*
-	* [PC-06]: TODO
-	*			Implement dodge action input handling
+	*	Implement dodge action input handling
 	* 
-	*			Use the character pawn's dodge function to execute the dodge action
+	*	Use the character pawn's dodge function to execute the dodge action
 	*/
 }
 
 void APlayerCharacterController::EnhancedUseLunge(const FInputActionValue& value)
 {
+	// TODO [PC-06]
 	/*
-	* [PC-06]: TODO
-	*			Implement lunge action input handling
+	*	Implement lunge action input handling
 	* 
-	*			Use the character pawn's Attack function to execute the lunge action
+	*	Use the character pawn's Attack function to execute the lunge action
 	*/
 }
 
 void APlayerCharacterController::EnhancedBeginLockOn(const FInputActionValue& value)
 {
+	// TODO [PC-06]
 	/*
-	* [PC-06]: TODO
-	*			Implement begin lock-on action input handling
+	*	Implement begin lock-on action input handling
 	* 
-	*			Add in the lock-on mapping context with ApplyInputMappingContext
-	*				Establish the priority in a constants file and use that variable when passing priority argument
+	*	Add in the lock-on mapping context with ApplyInputMappingContext
+	*		Establish the priority in a constants file and use that variable when passing priority argument
 	* 
-	*			Use the character pawn's respective function to identify lock-on targets and enter lock-on state
+	*	Use the character pawn's respective function to identify lock-on targets and enter lock-on state
 	*/
 }
 
 void APlayerCharacterController::EnhancedEndLockOn(const FInputActionValue& value)
 {
+	// TODO [PC-06]
 	/*
-	* [PC-06]: TODO
-	*			Implement end lock-on action input handling
+	*	Implement end lock-on action input handling
 	* 
-	*			Revoke the lock-on mapping context with ApplyInputMappingContext
-	*				Establish the priority in a constants file and use that variable when passing priority argument
+	*	Revoke the lock-on mapping context with ApplyInputMappingContext
+	*		Establish the priority in a constants file and use that variable when passing priority argument
 	* 
-	*			Use the character pawn's respective function to clear out the target list and exit lock-on state
+	*	Use the character pawn's respective function to clear out the target list and exit lock-on state
 	*/
 }
 
 void APlayerCharacterController::EnhancedChangeLockOnTarget(const FInputActionValue& value)
 {
+	// TODO [PC-06]
 	/*
-	* [PC-06]: TODO
-	*			Implement change lock-on target action input handling
+	*	Implement change lock-on target action input handling
 	* 
-	*			Use the character pawn's respective function to recalculate the lock-on target list and change the current lock-on target to the next one in the list
+	*	Use the character pawn's respective function to recalculate the lock-on target list and change the current lock-on target to the next one in the list
 	*/
 }
 

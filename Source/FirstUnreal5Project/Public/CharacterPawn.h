@@ -6,9 +6,9 @@
 #include "GameFramework/Pawn.h"
 #include "CharacterPawn.generated.h"
 
+// TODO [PC-06]
 /*
-* [PC-06]: TODO
-*			Legacy code for projectiles, can be removed
+*	Legacy code for projectiles, can be removed
 */
 enum ProjectileType
 {
@@ -27,9 +27,9 @@ namespace ESpawnableAttack
 		MeleeTwo,
 		MeleeThree,
 		MeleeFour
+		// TODO [PC-06]
 		/*
-		* [PC-06]: TODO
-		*			Add in new enum value for lunge attack
+		*	Add in new enum value for lunge attack
 		*/
 	};
 }
@@ -46,11 +46,20 @@ struct FAttackInfo
 	TSubclassOf<AActor> AttackClass;
 };
 
+struct FDodgeInfo
+{
+	FVector StartLocation;
+	float DodgeDistanceScale;
+	FVector TargetDirection;
+	float ElapsedTime;
+	float MaxDodgeTime;
+};
+
+// TODO [PC-06]
 /*
-* [PC-06]: TODO
-* 			Add in new struct for array of lock-on targets that the player can cycle through when lock-on is active
+* 	Add in new struct for array of lock-on targets that the player can cycle through when lock-on is active
 * 
-*			Should be comprised of a reference to the target actor and it's transform in world space
+*	Should be comprised of a reference to the target actor and it's transform in world space
 */
 
 UCLASS()
@@ -74,10 +83,18 @@ public:
 	/** Set time to reach peak height when jumping ( in sec ) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
 	float TimeToPeakJump;
+	
+	/** Set scale value to apply to dodge action ( in cm ) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
+	float DodgeDistanceScale;
+	
+	/** Set time value for max dodge time ( in sec ) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
+	float MaxDodgeTime;
 
+	// TODO [PC-06]
 	/*
-	* [PC-06]: TODO
-	*			Legacy code for projectiles, can be removed
+	*	Legacy code for projectiles, can be removed
 	*/
 	/** Class reference to light projectile spawner to spawn light projectiles when firing light projectile action is triggered */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Weapons")
@@ -89,6 +106,14 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
 	TArray<FAttackInfo> AttackInfoArray;
+
+	/** Set scale value to apply to lunge action ( in cm ) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
+	float LungeDistanceScale;
+
+	/** Set time value for max lunge time ( in sec ) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
+	float MaxLungeTime;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Properties")
 	float MaxLockOnDistance;
@@ -120,6 +145,10 @@ public:
 
 	void CycleLockOnTarget();
 
+	void Dodge(FVector);
+
+	void Lunge();
+
 	UFUNCTION()
 	void OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
@@ -134,13 +163,17 @@ private:
 
 	float JumpStartZ;
 
+	FDodgeInfo CurrentDodgeInfo;
+
+	bool bIsDodging;
+
 	TMap<TEnumAsByte<ESpawnableAttack::EType>, TSubclassOf<AActor>> AttackMap;
 
 	TMap<TEnumAsByte<ESpawnableAttack::EType>, FRotator> MeleeAttackRotatorMap;
 
+	// TODO [PC-06]
 	/*
-	* [PC-06]: TODO
-	*			Add in new private member variable for array of lock-on targets that the player can cycle through when lock-on is active
+	*	Add in new private member variable for array of lock-on targets that the player can cycle through when lock-on is active
 	*/
 
 	int CurrentLockOnTargetIndex;
@@ -150,6 +183,12 @@ private:
 	void EnableGravity(bool);
 
 	void EnableFeetOverlapEvents(bool, bool);
+
+	float EaseOut(float);
+
+	FVector GetDodgeLocation(FDodgeInfo, bool);
+
+	void ApplyDodge(FDodgeInfo);
 
 	void SpawnAttack(ESpawnableAttack::EType, float, FRotator);
 
