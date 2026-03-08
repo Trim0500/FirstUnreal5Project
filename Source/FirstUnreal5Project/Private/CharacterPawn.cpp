@@ -59,12 +59,41 @@ void ACharacterPawn::BeginPlay()
 			}
 		}
 	}
+
+	// TODO [PC-06]
+	/*
+	*	Set current lock-on target index to 0
+	*	Set lock-on active to false
+	*	Set dodge flag to false
+	*	Set current dodge info struct to default values
+	*/
 }
 
 // Called every frame
 void ACharacterPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// TODO [PC-06]
+	/*
+	*	Given that the player is dodging, need to do the following
+	*		Increment the current dodge time by DeltaTime
+	*			If the current dodge exceeds MaxDodgeTime
+	*				Set dodge flag to false
+	*				Reset the current dodge info
+	*				Access the player controller and call its ApplyInputMappingContext function to switch back to the default input mapping context
+	*				Set the actor to be tangible by calling SetActorEnableCollision(true)
+	*				Re-enable gravity by calling EnableGravity(true)
+	*			If the current dodge time does not exceed MaxDodgeTime
+	*				Call ApplyDodge passing over the current dodge info struct
+	*/
+
+	// TODO [PC-06]
+	/*
+	*	Assuming that lock-on is active need to do the following
+	*		Call ApplyLockOnRotation
+	*		Call AdjustCameraForLockOn
+	*/
 
 	if (bIsJumping)
 	{
@@ -213,6 +242,118 @@ void ACharacterPawn::Attack(ESpawnableAttack::EType EAttackType)
 	}
 }
 
+void ACharacterPawn::ToggleLockOn(bool bActivateLockOn)
+{
+	// TODO [PC-06]
+	/*
+	*	Implement logic for character pawn to toggle lock-on state when lock-on is enabled/disabled 
+	*		If enabled:
+	*			Set lock-on active boolean to true
+	*			Calculate lock-on targets to populate array
+	*			Select first lock-on target from array as current lock-on target
+	*			Keep track of the current lock-on target index in the array to allow for cycling through targets when lock-on is active
+	* 
+	*		If disabled:
+	*			Reset the lock-on target index
+	*			Clear lock-on target
+	*			Clear lock-on target array
+	*			Set lock-on flag to false
+	*/
+}
+
+void ACharacterPawn::CycleLockOnTarget()
+{
+	// TODO [PC-06]
+	/*
+	* 	Implement logic for character pawn to cycle through lock-on targets
+	* 
+	*	Calculate lock-on targets, passing over current lock-on target and all others that came before
+	*	Set next target in array as current lock-on target
+	*	Increment lock-on target index, use modulo with length of lock-on target array to loop back to beginning of array if index exceeds array length
+	*/
+}
+
+void ACharacterPawn::Dodge(FVector InputDirection)
+{
+	// TODO [PC-06]
+	/*
+	*	Implement the public API to begin a dodge action in the direction of the input vector
+	* 
+	*	Initialize current dodge info struct with the input vector
+	*		NOTE: Direction vector needs to be scaled by the Camera like how MovePawnHorizontally and MovePawnVertically apply movement input in the direction of the camera
+	* 
+	*	Set dodging flag to true to trigger dodge movement in Tick function
+	* 
+	*	Use ApplyInputMappingContext from the player controller to switch to the dodge input mapping context and block other inputs
+	* 
+	*	Make the actor intangible by calling SetActorEnableCollision(false) so that the player can dodge through enemies and other obstacles
+	* 
+	*	Disable gravity during the dodge by calling EnableGravity(false) so that the dodge movement is not affected by gravity
+	*/
+}
+
+void ACharacterPawn::Lunge()
+{
+	// TODO [PC-06]
+	/*
+	*	Implement the public API to begin a lunge action in the direction of the current lock-on target
+	* 
+	*	Initialize current lunge info struct with the pawn's mesh forward vector as the direction to lunge in
+	* 
+	*	Set dodge flag to true to trigger lunge movement in Tick function
+	* 
+	*	Make the actor intangible by calling SetActorEnableCollision(false) so that the player can lunge through enemies and other obstacles
+	* 
+	*	Disable gravity during the lunge by calling EnableGravity(false) so that the lunge movement is not affected by gravity
+	* 
+	*	Call Attack passing over the lunge attack type to trigger the lunge attack hitbox to spawn during the lunge movement
+	*		NOTE: The lunge attack hitbox should be set to spawn at the player's location and should move with the player during the lunge movement, so that it can hit enemies that are in the way of the lunge
+	*				This may be acheived by making a subsclass of the attack actor class whereby when its tick function is called, it sets its location to be the same as the player's location
+	*/
+}
+
+float ACharacterPawn::EaseOut(float Time)
+{
+	// TODO [PC-06]
+	/*
+	*	Implement the ease out function to apply an ease out curve to the dodge movement over time
+	* 
+	*	Take in the time variable and apply it to an ease out function such as a quadratic or cubic ease out to determine the multiplier to apply to the dodge movement vector at the current time
+	*/
+
+	return 0.0f;
+}
+
+FVector ACharacterPawn::GetDodgeLocation(FDodgeInfo DodgeInfo, bool bUseEaseOut)
+{
+	// TODO [PC-06]
+	/*
+	*	Implement the logic to calculate the dodge location based on the current dodge info and the ease out function
+	* 
+	*	Calculate ease out time if needed
+	*	
+	*	Use the ease out time to then call EaseOut and get the scale
+	* 
+	*	Calculate the location scale by using the dash distance scale and multiplying it by the result of the EaseOut function
+	* 
+	*	Calculate the new location by multiplying the start location by the dodge direction and then multiplying that by the location scale to get the offset from the start location, then add that to the start location to get the new location
+	*/
+
+	return FVector();
+}
+
+void ACharacterPawn::ApplyDodge(FDodgeInfo DodgeInfo)
+{
+	// TODO [PC-06]
+	/*
+	*	Implement the logic to apply the dodge movement to the character pawn based on the current dodge info
+	* 
+	*	Pass over the dodge info struct to GetDodgeLocation to get the new location
+	* 
+	*	Use AddMovementInput to move the character pawn to the new location
+	*/
+}
+
 void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor != nullptr && OtherActor->ActorHasTag("Floor"))
@@ -286,4 +427,44 @@ void ACharacterPawn::SpawnAttack(ESpawnableAttack::EType AttackType, float Spawn
 			GetWorld()->SpawnActor<AActor>(*AttackClass, SpawnLocation, MeshRotation + Rotator, SpawnParams);
 		}
 	}
+}
+
+void ACharacterPawn::ApplyLockOnRotation()
+{
+	// TODO [PC-06]
+	/*
+	*	Implement lock-on rotation logic to rotate the player to face the current lock-on target when lock-on is active
+	* 
+	*	Use the current lock-on target's location and the player's location and determine the rotation that must be applied to the player to face the lock-on target
+	*	Once calculated, add the result to the pawn's current rotation to rotate the player to face the lock-on target
+	*/			
+}
+
+void ACharacterPawn::CalculateLockOnTargets(bool bCycleTriggered)
+{
+	// TODO [PC-06]
+	/*
+	*	Implement lock-on target calculation logic to populate array of lock-on targets when lock-on is enabled and when cycling through lock-on targets
+	* 
+	*	If target cycling was triggered:
+	*		Grab current lock-on target reference by index and all previous targets in the lock-on target array
+	*		Begin creation of new lock-on target array starting with previous lock-on targets up to and including current lock-on target
+	*		Recalculate new lock-on targets by locating actors with valid tag and within maxmimum target range
+	*		Append list
+	* 
+	*	If target cycling was not triggered:
+	*		Recalculate new lock-on targets by locating actors with valid tag and within maxmimum target range
+	*/
+}
+
+void ACharacterPawn::AdjustCameraForLockOn()
+{
+	// TODO [PC-06]
+	/*
+	*	Implement camera adjustment logic to adjust the camera position and rotation when lock-on is active to better frame the current lock-on target
+	* 
+	*	Find the current lock-on target's location by querying lock-on target array with current lock-on target index
+	*	Use midpoint formula to find the midpoint between the player and the current lock-on target in world space
+	* 	Set the camera's location to the midpoint location, maintaining the camera's current height
+	*/
 }

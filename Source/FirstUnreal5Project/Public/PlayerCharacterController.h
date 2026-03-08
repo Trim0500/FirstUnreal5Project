@@ -32,6 +32,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( Movement )")
 	UInputAction* Jump;
 	
+	/** Input Action asset to map controller input to dodge action */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( Movement )")
+	UInputAction* Dodge;
+	
 	/** Input Action asset to map controller input to firing light projectile action */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( Attacks )")
 	UInputAction* FireLightProjectile;
@@ -55,18 +59,46 @@ public:
 	/** Input Action asset to map controller input to using melee attack ( 4/4 ) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( Attacks )")
 	UInputAction* MeleeAttackFour;
+	
+	/** Input Action asset to map controller input to using lunge attack */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( Attacks )")
+	UInputAction* Lunge;
+	
+	/** Input Action asset to map controller input to entering lock-on state */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( State )")
+	UInputAction* BeginLockOn;
+	
+	/** Input Action asset to map controller input to leaving lock-on state */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( State )")
+	UInputAction* EndLockOn;
+	
+	/** Input Action asset to map controller input to changing lock-on target */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Actions ( State )")
+	UInputAction* ChangeLockOnTarget;
 
 	/** Input Mapping Context asset for neutral player character state */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Context")
 	TSoftObjectPtr<UInputMappingContext> InputMapping;
 	
+	/** Input Mapping Context asset for lock-on player character state */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Context")
+	TSoftObjectPtr<UInputMappingContext> LockOnInputMapping;
+	
 	/** Can this controller use a jump action? */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Flags")
 	bool bIsJumpAvailable;
+	
+	/** Can this controller use a jump action? */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Flags")
+	bool bIsDodgeAvailable;
 
 	/** Can this controller use a melee action? */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Flags")
 	bool bIsMeleeAvailable;
+	
+	/** Is this controller in lock-on state? */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Flags")
+	bool bIsInLockOn;
 
 	// Called to bind functionality to input
 	virtual void SetupInputComponent() override;
@@ -94,6 +126,16 @@ public:
 	void EnhancedUseMeleeAttackThree(const FInputActionValue& value);
 
 	void EnhancedUseMeleeAttackFour(const FInputActionValue& value);
+
+	void EnhancedUseDodge(const FInputActionValue& value);
+
+	void EnhancedUseLunge(const FInputActionValue& value);
+	
+	void EnhancedBeginLockOn(const FInputActionValue& value);
+	
+	void EnhancedEndLockOn(const FInputActionValue& value);
+	
+	void EnhancedChangeLockOnTarget(const FInputActionValue& value);
 
 	void ApplyInputMappingContext(TSoftObjectPtr<UInputMappingContext>&, int, bool);
 private:
