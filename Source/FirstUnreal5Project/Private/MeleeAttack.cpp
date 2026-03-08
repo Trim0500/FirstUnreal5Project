@@ -40,6 +40,13 @@ void AMeleeAttack::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// TODO [PC-06]
+	/*
+	*	Implement the logic to track the player character actor location and ensure the melee attack actor is always in the correct position relative to the player character.
+	* 
+	*	NOTE: The exact distance in front of the player character ( in cm ) should be a constant value, declared and defined in a global header file
+	*/
+
 	TotalFrameTime += DeltaTime;
 
 	if (TotalFrameTime >= LifetimeFrameThreshold && bNextAttackExists)

@@ -284,6 +284,8 @@ void ACharacterPawn::Dodge(FVector InputDirection)
 	* 
 	*	Set dodging flag to true to trigger dodge movement in Tick function
 	* 
+	*	Use ApplyInputMappingContext from the player controller to switch to the dodge input mapping context and block other inputs
+	* 
 	*	Make the actor intangible by calling SetActorEnableCollision(false) so that the player can dodge through enemies and other obstacles
 	* 
 	*	Disable gravity during the dodge by calling EnableGravity(false) so that the dodge movement is not affected by gravity

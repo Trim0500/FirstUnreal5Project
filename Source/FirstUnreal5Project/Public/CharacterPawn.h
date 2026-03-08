@@ -2,6 +2,10 @@
 
 #pragma once
 
+#include "EnhancedInput/Public/EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputMappingContext.h"
+
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "CharacterPawn.generated.h"
@@ -26,11 +30,8 @@ namespace ESpawnableAttack
 		MeleeOne,
 		MeleeTwo,
 		MeleeThree,
-		MeleeFour
-		// TODO [PC-06]
-		/*
-		*	Add in new enum value for lunge attack
-		*/
+		MeleeFour,
+		Lunge
 	};
 }
 
@@ -117,6 +118,10 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Properties")
 	float MaxLockOnDistance;
+
+	/** Input Mapping Context asset for dodge player character state */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input Context")
+	TSoftObjectPtr<UInputMappingContext> DodgeInputMapping;
 
 	// Sets default values for this pawn's properties
 	ACharacterPawn();
