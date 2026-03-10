@@ -14,23 +14,7 @@ void APlayerCharacterController::SetupInputComponent()
 
 	check(InputComponent != nullptr);
 
-	// TODO [PC-06]
-	/*
-	*	Refactor to use the ApplyInputMappingContext function and map the neutral input mapping context to the player character controller
-	*
-	*	Change priority of neutral input mapping context to be lower than the priority of the combat input mapping context
-	*		Keep the priority in a new constants file and use it in both the player character controller and the input mapping contexts
-	*/
-	if (ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* InputSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
-		{
-			if (!InputMapping.IsNull())
-			{
-				InputSystem->AddMappingContext(InputMapping.LoadSynchronous(), 1);
-			}
-		}
-	}
+	ApplyInputMappingContext(InputMapping, DEFAULT_INPUT_MAPPING_PRIORITY, true);
 
 	if (UEnhancedInputComponent* EnhancedInputComponenet = Cast<UEnhancedInputComponent>(InputComponent))
 	{
@@ -46,11 +30,8 @@ void APlayerCharacterController::SetupInputComponent()
 		EnhancedInputComponenet->BindAction(BeginLockOn, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedBeginLockOn);
 		EnhancedInputComponenet->BindAction(EndLockOn, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedEndLockOn);
 		EnhancedInputComponenet->BindAction(ChangeLockOnTarget, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedChangeLockOnTarget);
-
-		// TODO [PC-06]
-		/*
-		*	Map input actions for dodge, lunge and lock-on state changes
-		*/
+		EnhancedInputComponenet->BindAction(Dodge, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseDodge);
+		EnhancedInputComponenet->BindAction(Lunge, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseLunge);
 	}
 }
 
@@ -152,22 +133,26 @@ void APlayerCharacterController::EnhancedUseMeleeAttackFour(const FInputActionVa
 
 void APlayerCharacterController::EnhancedUseDodge(const FInputActionValue& value)
 {
-	// TODO [PC-06]
-	/*
-	*	Implement dodge action input handling
-	* 
-	*	Use the character pawn's dodge function to execute the dodge action
-	*/
+	if (EInputActionValueType::Boolean == value.GetValueType())
+	{
+		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
+		if (CharacterPawn != nullptr)
+		{
+			CharacterPawn->Dodge(FVector());
+		}
+	}
 }
 
 void APlayerCharacterController::EnhancedUseLunge(const FInputActionValue& value)
 {
-	// TODO [PC-06]
-	/*
-	*	Implement lunge action input handling
-	* 
-	*	Use the character pawn's Attack function to execute the lunge action
-	*/
+	if (EInputActionValueType::Boolean == value.GetValueType())
+	{
+		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
+		if (CharacterPawn != nullptr)
+		{
+			CharacterPawn->Dodge(FVector());
+		}
+	}
 }
 
 void APlayerCharacterController::EnhancedBeginLockOn(const FInputActionValue& value)
