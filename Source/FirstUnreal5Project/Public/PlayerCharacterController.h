@@ -11,9 +11,6 @@
 #include "InputMappingContext.h"
 #include "PlayerCharacterController.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class FIRSTUNREAL5PROJECT_API APlayerCharacterController : public APlayerController
 {

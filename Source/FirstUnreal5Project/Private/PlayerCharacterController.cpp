@@ -4,6 +4,9 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "PlayerCharacterController.h"
+#include "Constants.h"
+
+using namespace Functional_Project_Constants;
 
 void APlayerCharacterController::SetupInputComponent()
 {
@@ -40,6 +43,7 @@ void APlayerCharacterController::SetupInputComponent()
 		EnhancedInputComponenet->BindAction(MeleeAttackTwo, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseMeleeAttackTwo);
 		EnhancedInputComponenet->BindAction(MeleeAttackThree, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseMeleeAttackThree);
 		EnhancedInputComponenet->BindAction(MeleeAttackFour, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseMeleeAttackFour);
+		EnhancedInputComponenet->BindAction(BeginLockOn, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedBeginLockOn);
 
 		// TODO [PC-06]
 		/*
@@ -166,15 +170,22 @@ void APlayerCharacterController::EnhancedUseLunge(const FInputActionValue& value
 
 void APlayerCharacterController::EnhancedBeginLockOn(const FInputActionValue& value)
 {
-	// TODO [PC-06]
-	/*
-	*	Implement begin lock-on action input handling
-	* 
-	*	Add in the lock-on mapping context with ApplyInputMappingContext
-	*		Establish the priority in a constants file and use that variable when passing priority argument
-	* 
-	*	Use the character pawn's respective function to identify lock-on targets and enter lock-on state
-	*/
+	UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedBeginLockOn]: function called..."));
+
+	if (EInputActionValueType::Boolean == value.GetValueType())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedBeginLockOn]: input accepted..."));
+
+		ApplyInputMappingContext(LockOnInputMapping, LOCKON_INPUT_MAPPING_PRIORITY, true);
+
+		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
+		if (CharacterPawn != nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedBeginLockOn]: Found pawn! Calling ToggleLockOn..."));
+
+			CharacterPawn->ToggleLockOn(true);
+		}
+	}
 }
 
 void APlayerCharacterController::EnhancedEndLockOn(const FInputActionValue& value)
