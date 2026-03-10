@@ -44,6 +44,7 @@ void APlayerCharacterController::SetupInputComponent()
 		EnhancedInputComponenet->BindAction(MeleeAttackThree, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseMeleeAttackThree);
 		EnhancedInputComponenet->BindAction(MeleeAttackFour, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseMeleeAttackFour);
 		EnhancedInputComponenet->BindAction(BeginLockOn, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedBeginLockOn);
+		EnhancedInputComponenet->BindAction(EndLockOn, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedEndLockOn);
 
 		// TODO [PC-06]
 		/*
@@ -190,15 +191,22 @@ void APlayerCharacterController::EnhancedBeginLockOn(const FInputActionValue& va
 
 void APlayerCharacterController::EnhancedEndLockOn(const FInputActionValue& value)
 {
-	// TODO [PC-06]
-	/*
-	*	Implement end lock-on action input handling
-	* 
-	*	Revoke the lock-on mapping context with ApplyInputMappingContext
-	*		Establish the priority in a constants file and use that variable when passing priority argument
-	* 
-	*	Use the character pawn's respective function to clear out the target list and exit lock-on state
-	*/
+	UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedEndLockOn]: function called..."));
+
+	if (EInputActionValueType::Boolean == value.GetValueType())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedEndLockOn]: input accepted..."));
+
+		ApplyInputMappingContext(LockOnInputMapping, LOCKON_INPUT_MAPPING_PRIORITY, false);
+
+		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
+		if (CharacterPawn != nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedEndLockOn]: Found pawn! Calling ToggleLockOn..."));
+
+			CharacterPawn->ToggleLockOn(false);
+		}
+	}
 }
 
 void APlayerCharacterController::EnhancedChangeLockOnTarget(const FInputActionValue& value)
@@ -213,6 +221,8 @@ void APlayerCharacterController::EnhancedChangeLockOnTarget(const FInputActionVa
 
 void APlayerCharacterController::ApplyInputMappingContext(TSoftObjectPtr<UInputMappingContext>& _inputMappingContext, int Priority, bool bAddContext)
 {
+	APlayerController::FlushPressedKeys();
+
 	if (ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* InputSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())

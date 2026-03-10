@@ -4,5 +4,5 @@
 
 namespace Functional_Project_Constants
 {
-	inline constexpr int LOCKON_INPUT_MAPPING_PRIORITY = 1;
+	inline constexpr int LOCKON_INPUT_MAPPING_PRIORITY = 2;
 }
