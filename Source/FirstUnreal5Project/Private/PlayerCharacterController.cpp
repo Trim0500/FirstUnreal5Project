@@ -45,6 +45,7 @@ void APlayerCharacterController::SetupInputComponent()
 		EnhancedInputComponenet->BindAction(MeleeAttackFour, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseMeleeAttackFour);
 		EnhancedInputComponenet->BindAction(BeginLockOn, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedBeginLockOn);
 		EnhancedInputComponenet->BindAction(EndLockOn, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedEndLockOn);
+		EnhancedInputComponenet->BindAction(ChangeLockOnTarget, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedChangeLockOnTarget);
 
 		// TODO [PC-06]
 		/*
@@ -171,19 +172,13 @@ void APlayerCharacterController::EnhancedUseLunge(const FInputActionValue& value
 
 void APlayerCharacterController::EnhancedBeginLockOn(const FInputActionValue& value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedBeginLockOn]: function called..."));
-
 	if (EInputActionValueType::Boolean == value.GetValueType())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedBeginLockOn]: input accepted..."));
-
 		ApplyInputMappingContext(LockOnInputMapping, LOCKON_INPUT_MAPPING_PRIORITY, true);
 
 		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
 		if (CharacterPawn != nullptr)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedBeginLockOn]: Found pawn! Calling ToggleLockOn..."));
-
 			CharacterPawn->ToggleLockOn(true);
 		}
 	}
@@ -191,19 +186,13 @@ void APlayerCharacterController::EnhancedBeginLockOn(const FInputActionValue& va
 
 void APlayerCharacterController::EnhancedEndLockOn(const FInputActionValue& value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedEndLockOn]: function called..."));
-
 	if (EInputActionValueType::Boolean == value.GetValueType())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedEndLockOn]: input accepted..."));
-
 		ApplyInputMappingContext(LockOnInputMapping, LOCKON_INPUT_MAPPING_PRIORITY, false);
 
 		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
 		if (CharacterPawn != nullptr)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[APlayerCharacterController::EnhancedEndLockOn]: Found pawn! Calling ToggleLockOn..."));
-
 			CharacterPawn->ToggleLockOn(false);
 		}
 	}
@@ -211,12 +200,14 @@ void APlayerCharacterController::EnhancedEndLockOn(const FInputActionValue& valu
 
 void APlayerCharacterController::EnhancedChangeLockOnTarget(const FInputActionValue& value)
 {
-	// TODO [PC-06]
-	/*
-	*	Implement change lock-on target action input handling
-	* 
-	*	Use the character pawn's respective function to recalculate the lock-on target list and change the current lock-on target to the next one in the list
-	*/
+	if (EInputActionValueType::Boolean == value.GetValueType())
+	{
+		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
+		if (CharacterPawn != nullptr)
+		{
+			CharacterPawn->CycleLockOnTarget();
+		}
+	}
 }
 
 void APlayerCharacterController::ApplyInputMappingContext(TSoftObjectPtr<UInputMappingContext>& _inputMappingContext, int Priority, bool bAddContext)
