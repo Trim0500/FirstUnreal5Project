@@ -54,14 +54,8 @@ struct FDodgeInfo
 	FVector TargetDirection;
 	float ElapsedTime;
 	float MaxDodgeTime;
+	bool bUseEaseOut;
 };
-
-// TODO [PC-06]
-/*
-* 	Add in new struct for array of lock-on targets that the player can cycle through when lock-on is active
-* 
-*	Should be comprised of a reference to the target actor and it's transform in world space
-*/
 
 struct LockOnTargetInfo
 {
@@ -183,11 +177,6 @@ private:
 
 	TMap<TEnumAsByte<ESpawnableAttack::EType>, FRotator> MeleeAttackRotatorMap;
 
-	// TODO [PC-06]
-	/*
-	*	Add in new private member variable for array of lock-on targets that the player can cycle through when lock-on is active
-	*/
-
 	TArray<LockOnTargetInfo> LockOnTargets;
 
 	int CurrentLockOnTargetIndex;
@@ -202,7 +191,7 @@ private:
 
 	float EaseOut(float);
 
-	FVector GetDodgeLocation(FDodgeInfo, bool);
+	FVector GetDodgeLocation(FDodgeInfo);
 
 	void ApplyDodge(FDodgeInfo);
 

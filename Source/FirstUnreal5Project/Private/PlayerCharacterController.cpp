@@ -150,7 +150,23 @@ void APlayerCharacterController::EnhancedUseLunge(const FInputActionValue& value
 		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
 		if (CharacterPawn != nullptr)
 		{
-			CharacterPawn->Dodge(false);
+			TArray<UActorComponent*> Meshes = CharacterPawn->GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("PlayerMesh"));
+			if (Meshes.Num() > 0)
+			{
+				FVector PlayerMeshForwardVector = Cast<UStaticMeshComponent>(Meshes[0])->GetForwardVector();
+
+				FVector LastPawnInputVector = CharacterPawn->GetLastMovementInputVector();
+				FVector VectorDirectionDifference = LastPawnInputVector - PlayerMeshForwardVector;
+				float absoluteMagnitudeDifference = VectorDirectionDifference.Size2D();
+				if (absoluteMagnitudeDifference <= 0.5)
+				{
+					CharacterPawn->Dodge(false);
+				}
+				else
+				{
+					CharacterPawn->Attack(ESpawnableAttack::MeleeOne);
+				}
+			}
 		}
 	}
 }
