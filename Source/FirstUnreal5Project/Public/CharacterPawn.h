@@ -194,6 +194,8 @@ private:
 
 	bool bIsLockOnActive;
 
+	void SetPawnMeshRotator(float, float);
+
 	void EnableGravity(bool);
 
 	void EnableFeetOverlapEvents(bool, bool);

@@ -70,6 +70,12 @@ void ACharacterPawn::BeginPlay()
 	*	Set dodge flag to false
 	*	Set current dodge info struct to default values
 	*/
+
+	CurrentLockOnTargetIndex = 0;
+
+	bIsLockOnActive = false;
+
+	LockOnTargets.Empty();
 }
 
 // Called every frame
@@ -98,6 +104,13 @@ void ACharacterPawn::Tick(float DeltaTime)
 	*		Call AdjustCameraForLockOn
 	*/
 
+	if (bIsLockOnActive)
+	{
+		ApplyLockOnRotation();
+
+		AdjustCameraForLockOn();
+	}
+
 	if (bIsJumping)
 	{
 		JumpElapsedTime += DeltaTime;
@@ -117,44 +130,9 @@ void ACharacterPawn::Tick(float DeltaTime)
 		// Ex. Input is received as [1, 0] which based on plane for object is X = 0 and Y = 1
 		// With a counter clockwise rotation, this means the angle is 90
 
-		float Adjacent = PotentialMovementVector.Y;
-		float Opposite = PotentialMovementVector.X;
-
-		float QuadrantValue = 0.0f;
-		if (Adjacent <= 0 && Opposite >= 0)
+		if (!bIsLockOnActive)
 		{
-			QuadrantValue = 270.0;
-		}
-		else if (Adjacent <= 0 && Opposite <= 0)
-		{
-			float Temp = Adjacent;
-			Adjacent = Opposite;
-			Opposite = Temp;
-
-			QuadrantValue = 180.0;
-		}
-		else if (Adjacent >= 0 && Opposite <= 0)
-		{
-			QuadrantValue = 90.0;
-		}
-		else
-		{
-			float Temp = Adjacent;
-			Adjacent = Opposite;
-			Opposite = Temp;
-		}
-
-		float Hypoteneuse = FMath::Sqrt(FMath::Square(Adjacent) + FMath::Square(Opposite));
-
-		float Radian = FMath::Asin(FMath::Abs(Opposite) / Hypoteneuse);
-
-		float Degree = Radian * (180 / M_PI) + QuadrantValue;
-
-		TArray<UActorComponent*> Mesh = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("PlayerMesh"));
-		if (Mesh.Num() > 0)
-		{
-			FRotator NewMeshRotation = FRotator(0.0f, Degree, 0.0f);
-			Cast<UStaticMeshComponent>(Mesh[0])->SetRelativeRotation(NewMeshRotation);
+			SetPawnMeshRotator(PotentialMovementVector.Y, PotentialMovementVector.X);
 		}
 
 		FVector NewMovementVector = GetActorLocation();
@@ -273,7 +251,11 @@ void ACharacterPawn::ToggleLockOn(bool bActivateLockOn)
 	}
 	else
 	{
-		
+		CurrentLockOnTargetIndex = 0;
+
+		LockOnTargets.Empty();
+
+		bIsLockOnActive = false;
 	}
 }
 
@@ -390,6 +372,46 @@ void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AAc
 	}
 }
 
+void ACharacterPawn::SetPawnMeshRotator(float Adjacent, float Opposite)
+{
+	float QuadrantValue = 0.0f;
+	if (Adjacent <= 0 && Opposite >= 0)
+	{
+		QuadrantValue = 270.0;
+	}
+	else if (Adjacent <= 0 && Opposite <= 0)
+	{
+		float Temp = Adjacent;
+		Adjacent = Opposite;
+		Opposite = Temp;
+
+		QuadrantValue = 180.0;
+	}
+	else if (Adjacent >= 0 && Opposite <= 0)
+	{
+		QuadrantValue = 90.0;
+	}
+	else
+	{
+		float Temp = Adjacent;
+		Adjacent = Opposite;
+		Opposite = Temp;
+	}
+
+	float Hypoteneuse = FMath::Sqrt(FMath::Square(Adjacent) + FMath::Square(Opposite));
+
+	float Radian = FMath::Asin(FMath::Abs(Opposite) / Hypoteneuse);
+
+	float Degree = Radian * (180 / M_PI) + QuadrantValue;
+
+	TArray<UActorComponent*> Mesh = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("PlayerMesh"));
+	if (Mesh.Num() > 0)
+	{
+		FRotator NewMeshRotation = FRotator(0.0f, Degree, 0.0f);
+		Cast<UStaticMeshComponent>(Mesh[0])->SetRelativeRotation(NewMeshRotation);
+	}
+}
+
 void ACharacterPawn::EnableGravity(bool bEnable)
 {
 	auto rootComponent = RootComponent;
@@ -453,7 +475,10 @@ void ACharacterPawn::ApplyLockOnRotation()
 	* 
 	*	Use the current lock-on target's location and the player's location and determine the rotation that must be applied to the player to face the lock-on target
 	*	Once calculated, add the result to the pawn's current rotation to rotate the player to face the lock-on target
-	*/			
+	*/
+
+	FVector LocationDifference = LockOnTargets[CurrentLockOnTargetIndex].TargetTransform - GetActorLocation();
+	SetPawnMeshRotator(LocationDifference.Y, LocationDifference.X);
 }
 
 void ACharacterPawn::CalculateLockOnTargets(bool bCycleTriggered)
