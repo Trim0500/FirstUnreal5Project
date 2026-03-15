@@ -157,7 +157,9 @@ void ACharacterPawn::MovePawnHorizontally(float InputVector)
 	if (PlayerCamera.Num() > 0)
 	{
 		auto CameraRightVector = Cast<UStaticMeshComponent>(PlayerCamera[0])->GetRightVector();
-		AddMovementInput(CameraRightVector, MoveScale * InputVector);
+
+		float moveScale = bIsLockOnActive && !bIsJumping ? MoveScale * InputVector * LockOnMoveReductionScale : MoveScale * InputVector;
+		AddMovementInput(CameraRightVector, moveScale);
 	}
 }
 
@@ -168,7 +170,8 @@ void ACharacterPawn::MovePawnVertically(float InputVector)
 	if (PlayerCamera.Num() > 0)
 	{
 		auto CameraForwardVector = Cast<UStaticMeshComponent>(PlayerCamera[0])->GetForwardVector();
-		AddMovementInput(CameraForwardVector, MoveScale * InputVector);
+		float moveScale = bIsLockOnActive && !bIsJumping ? MoveScale * InputVector * LockOnMoveReductionScale : MoveScale * InputVector;
+		AddMovementInput(CameraForwardVector, moveScale);
 	}
 }
 
