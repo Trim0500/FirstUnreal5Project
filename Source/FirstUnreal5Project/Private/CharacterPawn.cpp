@@ -261,7 +261,7 @@ void ACharacterPawn::ToggleLockOn(bool bActivateLockOn)
 
 		bIsLockOnActive = false;
 
-		
+		AdjustCameraForLockOn(GetActorLocation());
 	}
 }
 
@@ -275,6 +275,17 @@ void ACharacterPawn::CycleLockOnTarget()
 	*	Set next target in array as current lock-on target
 	*	Increment lock-on target index, use modulo with length of lock-on target array to loop back to beginning of array if index exceeds array length
 	*/
+
+	UE_LOG(LogTemp, Warning, TEXT("[ACharacterPawn::CycleLockOnTarget]: Function called..."));
+
+	CalculateLockOnTargets(true);
+
+	UE_LOG(LogTemp, Warning, TEXT("[ACharacterPawn::CycleLockOnTarget]: CurrentLockOnTargetIndex is %i"), CurrentLockOnTargetIndex);
+
+	CurrentLockOnTargetIndex = (CurrentLockOnTargetIndex + 1) % LockOnTargets.Num();
+
+	UE_LOG(LogTemp, Warning, TEXT("[ACharacterPawn::CycleLockOnTarget]: CurrentLockOnTargetIndex is now %i"), CurrentLockOnTargetIndex);
+
 }
 
 void ACharacterPawn::Dodge(FVector InputDirection)
@@ -491,27 +502,43 @@ void ACharacterPawn::CalculateLockOnTargets(bool bCycleTriggered)
 
 	FVector ActorLocation = GetActorLocation();
 
+	TMap<AActor*, bool> PreviousLockOnTargetMap;
+
+	TArray<LockOnTargetInfo> PreviousLockOnTargetArray;
+
 	if (bCycleTriggered)
 	{
-
-	}
-	else
-	{
-		TArray<AActor*> PotentialTargets;
-		UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName(LOCK_ON_TARGET_TAG), PotentialTargets);
-
-		for (AActor* Target : PotentialTargets)
+		for (int i = 0; i <= CurrentLockOnTargetIndex; i++)
 		{
-			FVector TargetLocation = Target->GetActorLocation();
-			float DistanceToTarget = FVector::Dist(TargetLocation, ActorLocation);
-			if (DistanceToTarget <= MaxLockOnDistance)
-			{
-				LockOnTargets.Add(LockOnTargetInfo(Target, TargetLocation));
-			}
+			PreviousLockOnTargetMap.Add(LockOnTargets[i].LockOnCandidate, true);
+			
+			PreviousLockOnTargetArray.Add(LockOnTargets[i]);
+		}
+	}
+	
+	LockOnTargets = PreviousLockOnTargetArray;
+
+	TArray<LockOnTargetInfo> NewPotentialLockOnTargets;
+
+	TArray<AActor*> NewPotentialTargets;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName(LOCK_ON_TARGET_TAG), NewPotentialTargets);
+
+	for (AActor* Target : NewPotentialTargets)
+	{
+		if (PreviousLockOnTargetMap.Contains(Target))
+		{
+			continue;
+		}
+
+		FVector TargetLocation = Target->GetActorLocation();
+		float DistanceToTarget = FVector::Dist(TargetLocation, ActorLocation);
+		if (DistanceToTarget <= MaxLockOnDistance)
+		{
+			NewPotentialLockOnTargets.Add(LockOnTargetInfo(Target, TargetLocation));
 		}
 	}
 
-	LockOnTargets.Sort([ActorLocation](const LockOnTargetInfo& A, const LockOnTargetInfo& B) {
+	NewPotentialLockOnTargets.Sort([ActorLocation](const LockOnTargetInfo& A, const LockOnTargetInfo& B) {
 		float DistanceA = FVector::Dist(A.TargetTransform, ActorLocation);
 
 		float DistanceB = FVector::Dist(B.TargetTransform, ActorLocation);
@@ -519,9 +546,9 @@ void ACharacterPawn::CalculateLockOnTargets(bool bCycleTriggered)
 		return DistanceA < DistanceB;
 	});
 
-	for (int i = 0; i < LockOnTargets.Num(); i++)
+	for (int i = 0; i < NewPotentialLockOnTargets.Num(); i++)
 	{
-		FString TargetIndexString = LockOnTargets[i].LockOnCandidate != nullptr ? LockOnTargets[i].LockOnCandidate->GetActorLabel() : FString("None");
+		LockOnTargets.Add(NewPotentialLockOnTargets[i]);
 	}
 }
 
