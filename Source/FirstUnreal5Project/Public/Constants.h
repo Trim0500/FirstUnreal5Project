@@ -9,4 +9,5 @@ namespace Functional_Project_Constants
 	extern const int DEFAULT_INPUT_MAPPING_PRIORITY;
 	extern const int LOCKON_INPUT_MAPPING_PRIORITY;
 	extern const FString LOCK_ON_TARGET_TAG;
+	extern const int DODGE_INPUT_MAPPING_PRIORITY;
 }

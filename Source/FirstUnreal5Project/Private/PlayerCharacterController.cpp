@@ -138,7 +138,7 @@ void APlayerCharacterController::EnhancedUseDodge(const FInputActionValue& value
 		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
 		if (CharacterPawn != nullptr)
 		{
-			CharacterPawn->Dodge(FVector());
+			CharacterPawn->Dodge(true);
 		}
 	}
 }
@@ -150,7 +150,7 @@ void APlayerCharacterController::EnhancedUseLunge(const FInputActionValue& value
 		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
 		if (CharacterPawn != nullptr)
 		{
-			CharacterPawn->Dodge(FVector());
+			CharacterPawn->Dodge(false);
 		}
 	}
 }

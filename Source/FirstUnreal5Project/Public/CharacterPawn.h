@@ -157,7 +157,7 @@ public:
 
 	void CycleLockOnTarget();
 
-	void Dodge(FVector);
+	void Dodge(bool);
 
 	void Lunge();
 

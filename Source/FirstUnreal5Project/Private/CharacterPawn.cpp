@@ -76,6 +76,10 @@ void ACharacterPawn::BeginPlay()
 	bIsLockOnActive = false;
 
 	LockOnTargets.Empty();
+
+	bIsDodging = false;
+
+	CurrentDodgeInfo = FDodgeInfo();
 }
 
 // Called every frame
@@ -96,6 +100,27 @@ void ACharacterPawn::Tick(float DeltaTime)
 	*			If the current dodge time does not exceed MaxDodgeTime
 	*				Call ApplyDodge passing over the current dodge info struct
 	*/
+
+	if (bIsDodging)
+	{
+		CurrentDodgeInfo.ElapsedTime += DeltaTime;
+		if (CurrentDodgeInfo.ElapsedTime >= CurrentDodgeInfo.MaxDodgeTime)
+		{
+			EnableGravity(true);
+
+			SetActorEnableCollision(true);
+
+			Cast<APlayerCharacterController>(GetController())->ApplyInputMappingContext(DodgeInputMapping, DODGE_INPUT_MAPPING_PRIORITY, false);
+
+			bIsDodging = false;
+
+			CurrentDodgeInfo = FDodgeInfo();
+		}
+		else
+		{
+			ApplyDodge(CurrentDodgeInfo);
+		}
+	}
 
 	// TODO [PC-06]
 	/*
@@ -140,12 +165,23 @@ void ACharacterPawn::Tick(float DeltaTime)
 		}
 
 		FVector NewMovementVector = GetActorLocation();
-		NewMovementVector.X += PotentialMovementVector.X * MoveScale;
-		NewMovementVector.Y += PotentialMovementVector.Y * MoveScale;
+
+		if (bIsDodging)
+		{
+			NewMovementVector.X = PotentialMovementVector.X;
+			NewMovementVector.Y = PotentialMovementVector.Y;
+		}
+		else
+		{
+			NewMovementVector.X += PotentialMovementVector.X * MoveScale;
+			NewMovementVector.Y += PotentialMovementVector.Y * MoveScale;
+		}
+
 		if (bIsJumping)
 		{
 			NewMovementVector.Z = PotentialMovementVector.Z;
 		}
+
 		SetActorLocation(NewMovementVector);
 	}
 }
@@ -279,19 +315,12 @@ void ACharacterPawn::CycleLockOnTarget()
 	*	Increment lock-on target index, use modulo with length of lock-on target array to loop back to beginning of array if index exceeds array length
 	*/
 
-	UE_LOG(LogTemp, Warning, TEXT("[ACharacterPawn::CycleLockOnTarget]: Function called..."));
-
 	CalculateLockOnTargets(true);
 
-	UE_LOG(LogTemp, Warning, TEXT("[ACharacterPawn::CycleLockOnTarget]: CurrentLockOnTargetIndex is %i"), CurrentLockOnTargetIndex);
-
 	CurrentLockOnTargetIndex = (CurrentLockOnTargetIndex + 1) % LockOnTargets.Num();
-
-	UE_LOG(LogTemp, Warning, TEXT("[ACharacterPawn::CycleLockOnTarget]: CurrentLockOnTargetIndex is now %i"), CurrentLockOnTargetIndex);
-
 }
 
-void ACharacterPawn::Dodge(FVector InputDirection)
+void ACharacterPawn::Dodge(bool bUseLastInputVector)
 {
 	// TODO [PC-06]
 	/*
@@ -308,6 +337,17 @@ void ACharacterPawn::Dodge(FVector InputDirection)
 	* 
 	*	Disable gravity during the dodge by calling EnableGravity(false) so that the dodge movement is not affected by gravity
 	*/
+
+	FVector DirectionVector = bUseLastInputVector ? GetLastMovementInputVector() : FVector();
+	CurrentDodgeInfo = FDodgeInfo(GetActorLocation(), DodgeDistanceScale, DirectionVector, 0.0f, MaxDodgeTime);
+
+	bIsDodging = true;
+
+	Cast<APlayerCharacterController>(GetController())->ApplyInputMappingContext(DodgeInputMapping, DODGE_INPUT_MAPPING_PRIORITY, true);
+
+	SetActorEnableCollision(false);
+
+	EnableGravity(false);
 }
 
 void ACharacterPawn::Lunge()
@@ -339,7 +379,7 @@ float ACharacterPawn::EaseOut(float Time)
 	*	Take in the time variable and apply it to an ease out function such as a quadratic or cubic ease out to determine the multiplier to apply to the dodge movement vector at the current time
 	*/
 
-	return 0.0f;
+	return 1 <= Time ? 1 : 1 - FMath::Pow(2, -10 * Time);
 }
 
 FVector ACharacterPawn::GetDodgeLocation(FDodgeInfo DodgeInfo, bool bUseEaseOut)
@@ -357,7 +397,11 @@ FVector ACharacterPawn::GetDodgeLocation(FDodgeInfo DodgeInfo, bool bUseEaseOut)
 	*	Calculate the new location by multiplying the start location by the dodge direction and then multiplying that by the location scale to get the offset from the start location, then add that to the start location to get the new location
 	*/
 
-	return FVector();
+	float EaseOutTime = DodgeInfo.ElapsedTime / DodgeInfo.MaxDodgeTime;
+	float EaseOutScale = bUseEaseOut ? EaseOut(EaseOutTime) : EaseOutTime;
+	float LocationScale = DodgeInfo.DodgeDistanceScale * EaseOutScale;
+
+	return DodgeInfo.StartLocation + DodgeInfo.TargetDirection * LocationScale;
 }
 
 void ACharacterPawn::ApplyDodge(FDodgeInfo DodgeInfo)
@@ -370,6 +414,9 @@ void ACharacterPawn::ApplyDodge(FDodgeInfo DodgeInfo)
 	* 
 	*	Use AddMovementInput to move the character pawn to the new location
 	*/
+
+	FVector NextDodgeLocation = GetDodgeLocation(DodgeInfo, true);
+	AddMovementInput(NextDodgeLocation);
 }
 
 void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
