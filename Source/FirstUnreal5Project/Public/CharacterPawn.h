@@ -212,5 +212,5 @@ private:
 
 	void CalculateLockOnTargets(bool);
 
-	void AdjustCameraForLockOn();
+	void AdjustCameraForLockOn(FVector);
 };

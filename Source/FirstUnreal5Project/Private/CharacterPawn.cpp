@@ -108,7 +108,7 @@ void ACharacterPawn::Tick(float DeltaTime)
 	{
 		ApplyLockOnRotation();
 
-		AdjustCameraForLockOn();
+		AdjustCameraForLockOn(LockOnTargets[CurrentLockOnTargetIndex].TargetTransform);
 	}
 
 	if (bIsJumping)
@@ -133,6 +133,8 @@ void ACharacterPawn::Tick(float DeltaTime)
 		if (!bIsLockOnActive)
 		{
 			SetPawnMeshRotator(PotentialMovementVector.Y, PotentialMovementVector.X);
+
+			AdjustCameraForLockOn(GetActorLocation());
 		}
 
 		FVector NewMovementVector = GetActorLocation();
@@ -256,6 +258,8 @@ void ACharacterPawn::ToggleLockOn(bool bActivateLockOn)
 		LockOnTargets.Empty();
 
 		bIsLockOnActive = false;
+
+		
 	}
 }
 
@@ -533,7 +537,7 @@ void ACharacterPawn::CalculateLockOnTargets(bool bCycleTriggered)
 	}
 }
 
-void ACharacterPawn::AdjustCameraForLockOn()
+void ACharacterPawn::AdjustCameraForLockOn(FVector TargetLocation)
 {
 	// TODO [PC-06]
 	/*
@@ -543,4 +547,16 @@ void ACharacterPawn::AdjustCameraForLockOn()
 	*	Use midpoint formula to find the midpoint between the player and the current lock-on target in world space
 	* 	Set the camera's location to the midpoint location, maintaining the camera's current height
 	*/
+
+	FVector WorldMidpointLocation = (GetActorLocation() + TargetLocation) / 2;
+
+	TArray<UActorComponent*> MeshComponents = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("CameraSwivel"));
+	if (MeshComponents.Num() > 0)
+	{
+		UStaticMeshComponent* CameraSwivel = Cast<UStaticMeshComponent>(MeshComponents[0]);
+		FVector CurrentCameraLocation = CameraSwivel->GetComponentLocation();
+
+		FVector NewCameraLocation = FVector(WorldMidpointLocation.X, WorldMidpointLocation.Y, CurrentCameraLocation.Z);
+		CameraSwivel->SetWorldLocation(NewCameraLocation);
+	}
 }
