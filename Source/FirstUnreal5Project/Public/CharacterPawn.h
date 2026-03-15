@@ -208,8 +208,6 @@ private:
 
 	void SpawnAttack(ESpawnableAttack::EType, float, FRotator);
 
-	void ApplyLockOnRotation();
-
 	void CalculateLockOnTargets(bool);
 
 	void AdjustCameraForLockOn(FVector);

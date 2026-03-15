@@ -106,9 +106,11 @@ void ACharacterPawn::Tick(float DeltaTime)
 
 	if (bIsLockOnActive)
 	{
-		ApplyLockOnRotation();
+		FVector LockOnTargetLocation = LockOnTargets[CurrentLockOnTargetIndex].TargetTransform;
+		FVector LocationDifference = LockOnTargets[CurrentLockOnTargetIndex].TargetTransform - GetActorLocation();
+		SetPawnMeshRotator(LocationDifference.Y, LocationDifference.X);
 
-		AdjustCameraForLockOn(LockOnTargets[CurrentLockOnTargetIndex].TargetTransform);
+		AdjustCameraForLockOn(LockOnTargetLocation);
 	}
 
 	if (bIsJumping)
@@ -469,20 +471,6 @@ void ACharacterPawn::SpawnAttack(ESpawnableAttack::EType AttackType, float Spawn
 			GetWorld()->SpawnActor<AActor>(*AttackClass, SpawnLocation, MeshRotation + Rotator, SpawnParams);
 		}
 	}
-}
-
-void ACharacterPawn::ApplyLockOnRotation()
-{
-	// TODO [PC-06]
-	/*
-	*	Implement lock-on rotation logic to rotate the player to face the current lock-on target when lock-on is active
-	* 
-	*	Use the current lock-on target's location and the player's location and determine the rotation that must be applied to the player to face the lock-on target
-	*	Once calculated, add the result to the pawn's current rotation to rotate the player to face the lock-on target
-	*/
-
-	FVector LocationDifference = LockOnTargets[CurrentLockOnTargetIndex].TargetTransform - GetActorLocation();
-	SetPawnMeshRotator(LocationDifference.Y, LocationDifference.X);
 }
 
 void ACharacterPawn::CalculateLockOnTargets(bool bCycleTriggered)
