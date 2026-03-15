@@ -2,8 +2,11 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
+
 namespace Functional_Project_Constants
 {
-	inline constexpr int DEFAULT_INPUT_MAPPING_PRIORITY = 0;
-	inline constexpr int LOCKON_INPUT_MAPPING_PRIORITY = 1;
+	extern const int DEFAULT_INPUT_MAPPING_PRIORITY;
+	extern const int LOCKON_INPUT_MAPPING_PRIORITY;
+	extern const FString LOCK_ON_TARGET_TAG;
 }

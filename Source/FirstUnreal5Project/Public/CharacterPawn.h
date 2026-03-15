@@ -63,6 +63,13 @@ struct FDodgeInfo
 *	Should be comprised of a reference to the target actor and it's transform in world space
 */
 
+struct LockOnTargetInfo
+{
+	AActor* LockOnCandidate;
+
+	FVector TargetTransform;
+};
+
 UCLASS()
 class FIRSTUNREAL5PROJECT_API ACharacterPawn : public APawn
 {
@@ -180,6 +187,8 @@ private:
 	/*
 	*	Add in new private member variable for array of lock-on targets that the player can cycle through when lock-on is active
 	*/
+
+	TArray<LockOnTargetInfo> LockOnTargets;
 
 	int CurrentLockOnTargetIndex;
 

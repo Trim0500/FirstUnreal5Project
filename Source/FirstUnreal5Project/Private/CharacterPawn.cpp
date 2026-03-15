@@ -8,7 +8,10 @@
 #include "Components/BoxComponent.h"
 
 #include "CharacterPawn.h"
+#include "Constants.h"
 #include "PlayerCharacterController.h"
+
+using namespace Functional_Project_Constants;
 
 // Sets default values
 ACharacterPawn::ACharacterPawn()
@@ -259,6 +262,19 @@ void ACharacterPawn::ToggleLockOn(bool bActivateLockOn)
 	*			Clear lock-on target array
 	*			Set lock-on flag to false
 	*/
+
+	if (bActivateLockOn)
+	{
+		bIsLockOnActive = true;
+
+		CalculateLockOnTargets(false);
+
+		CurrentLockOnTargetIndex = 0;
+	}
+	else
+	{
+		
+	}
 }
 
 void ACharacterPawn::CycleLockOnTarget()
@@ -455,6 +471,41 @@ void ACharacterPawn::CalculateLockOnTargets(bool bCycleTriggered)
 	*	If target cycling was not triggered:
 	*		Recalculate new lock-on targets by locating actors with valid tag and within maxmimum target range
 	*/
+
+	FVector ActorLocation = GetActorLocation();
+
+	if (bCycleTriggered)
+	{
+
+	}
+	else
+	{
+		TArray<AActor*> PotentialTargets;
+		UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName(LOCK_ON_TARGET_TAG), PotentialTargets);
+
+		for (AActor* Target : PotentialTargets)
+		{
+			FVector TargetLocation = Target->GetActorLocation();
+			float DistanceToTarget = FVector::Dist(TargetLocation, ActorLocation);
+			if (DistanceToTarget <= MaxLockOnDistance)
+			{
+				LockOnTargets.Add(LockOnTargetInfo(Target, TargetLocation));
+			}
+		}
+	}
+
+	LockOnTargets.Sort([ActorLocation](const LockOnTargetInfo& A, const LockOnTargetInfo& B) {
+		float DistanceA = FVector::Dist(A.TargetTransform, ActorLocation);
+
+		float DistanceB = FVector::Dist(B.TargetTransform, ActorLocation);
+		
+		return DistanceA < DistanceB;
+	});
+
+	for (int i = 0; i < LockOnTargets.Num(); i++)
+	{
+		FString TargetIndexString = LockOnTargets[i].LockOnCandidate != nullptr ? LockOnTargets[i].LockOnCandidate->GetActorLabel() : FString("None");
+	}
 }
 
 void ACharacterPawn::AdjustCameraForLockOn()
