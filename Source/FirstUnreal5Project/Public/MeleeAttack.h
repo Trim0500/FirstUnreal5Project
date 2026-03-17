@@ -65,6 +65,9 @@ public:
 	/** Definition for damage to apply to character when hit by attack  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Attack Properties")
 	int Power;
+
+	UFUNCTION()
+	void OnAttackOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 private:
 	float TotalFrameTime;
 

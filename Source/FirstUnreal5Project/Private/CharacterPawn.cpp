@@ -8,7 +8,10 @@
 #include "Components/BoxComponent.h"
 
 #include "CharacterPawn.h"
+#include "Constants.h"
 #include "PlayerCharacterController.h"
+
+using namespace Functional_Project_Constants;
 
 // Sets default values
 ACharacterPawn::ACharacterPawn()
@@ -54,17 +57,53 @@ void ACharacterPawn::BeginPlay()
 					MeleeAttackRotatorMap.Add(Info.AttackType, FRotator(0.0f, 0.0f, 180.0f));
 					
 					break;
+				case ESpawnableAttack::Lunge:
+					MeleeAttackRotatorMap.Add(Info.AttackType, FRotator(270.0f, 0.0f, 0.0f));
+
+					break;
 				default:
 					break;
 			}
 		}
 	}
+
+	CurrentLockOnTargetIndex = 0;
+
+	bIsLockOnActive = false;
+
+	LockOnTargets.Empty();
+
+	bIsDodging = false;
+
+	CurrentDodgeInfo = FDodgeInfo();
 }
 
 // Called every frame
 void ACharacterPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (bIsDodging)
+	{
+		CurrentDodgeInfo.ElapsedTime += DeltaTime;
+		if (CurrentDodgeInfo.ElapsedTime >= CurrentDodgeInfo.MaxDodgeTime)
+		{
+			CancelLunge();
+		}
+		else
+		{
+			ApplyDodge(CurrentDodgeInfo);
+		}
+	}
+
+	if (bIsLockOnActive && LockOnTargets.Num() > 0)
+	{
+		FVector LockOnTargetLocation = LockOnTargets[CurrentLockOnTargetIndex].TargetTransform;
+		FVector LocationDifference = LockOnTargets[CurrentLockOnTargetIndex].TargetTransform - GetActorLocation();
+		SetPawnMeshRotator(LocationDifference.Y, LocationDifference.X);
+
+		AdjustCameraForLockOn(LockOnTargetLocation);
+	}
 
 	if (bIsJumping)
 	{
@@ -85,53 +124,31 @@ void ACharacterPawn::Tick(float DeltaTime)
 		// Ex. Input is received as [1, 0] which based on plane for object is X = 0 and Y = 1
 		// With a counter clockwise rotation, this means the angle is 90
 
-		float Adjacent = PotentialMovementVector.Y;
-		float Opposite = PotentialMovementVector.X;
-
-		float QuadrantValue = 0.0f;
-		if (Adjacent <= 0 && Opposite >= 0)
+		if (!bIsLockOnActive)
 		{
-			QuadrantValue = 270.0;
-		}
-		else if (Adjacent <= 0 && Opposite <= 0)
-		{
-			float Temp = Adjacent;
-			Adjacent = Opposite;
-			Opposite = Temp;
+			SetPawnMeshRotator(PotentialMovementVector.Y, PotentialMovementVector.X);
 
-			QuadrantValue = 180.0;
-		}
-		else if (Adjacent >= 0 && Opposite <= 0)
-		{
-			QuadrantValue = 90.0;
-		}
-		else
-		{
-			float Temp = Adjacent;
-			Adjacent = Opposite;
-			Opposite = Temp;
-		}
-
-		float Hypoteneuse = FMath::Sqrt(FMath::Square(Adjacent) + FMath::Square(Opposite));
-
-		float Radian = FMath::Asin(FMath::Abs(Opposite) / Hypoteneuse);
-
-		float Degree = Radian * (180 / M_PI) + QuadrantValue;
-
-		TArray<UActorComponent*> Mesh = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("PlayerMesh"));
-		if (Mesh.Num() > 0)
-		{
-			FRotator NewMeshRotation = FRotator(0.0f, Degree, 0.0f);
-			Cast<UStaticMeshComponent>(Mesh[0])->SetRelativeRotation(NewMeshRotation);
+			AdjustCameraForLockOn(GetActorLocation());
 		}
 
 		FVector NewMovementVector = GetActorLocation();
-		NewMovementVector.X += PotentialMovementVector.X * MoveScale;
-		NewMovementVector.Y += PotentialMovementVector.Y * MoveScale;
+
+		if (bIsDodging)
+		{
+			NewMovementVector.X = PotentialMovementVector.X;
+			NewMovementVector.Y = PotentialMovementVector.Y;
+		}
+		else
+		{
+			NewMovementVector.X += PotentialMovementVector.X * MoveScale;
+			NewMovementVector.Y += PotentialMovementVector.Y * MoveScale;
+		}
+
 		if (bIsJumping)
 		{
 			NewMovementVector.Z = PotentialMovementVector.Z;
 		}
+
 		SetActorLocation(NewMovementVector);
 	}
 }
@@ -143,7 +160,9 @@ void ACharacterPawn::MovePawnHorizontally(float InputVector)
 	if (PlayerCamera.Num() > 0)
 	{
 		auto CameraRightVector = Cast<UStaticMeshComponent>(PlayerCamera[0])->GetRightVector();
-		AddMovementInput(CameraRightVector, MoveScale * InputVector);
+
+		float moveScale = bIsLockOnActive && !bIsJumping ? MoveScale * InputVector * LockOnMoveReductionScale : MoveScale * InputVector;
+		AddMovementInput(CameraRightVector, moveScale);
 	}
 }
 
@@ -154,7 +173,8 @@ void ACharacterPawn::MovePawnVertically(float InputVector)
 	if (PlayerCamera.Num() > 0)
 	{
 		auto CameraForwardVector = Cast<UStaticMeshComponent>(PlayerCamera[0])->GetForwardVector();
-		AddMovementInput(CameraForwardVector, MoveScale * InputVector);
+		float moveScale = bIsLockOnActive && !bIsJumping ? MoveScale * InputVector * LockOnMoveReductionScale : MoveScale * InputVector;
+		AddMovementInput(CameraForwardVector, moveScale);
 	}
 }
 
@@ -175,42 +195,105 @@ void ACharacterPawn::JumpPawn()
 	JumpStartZ = GetActorLocation().Z;
 }
 
-void ACharacterPawn::FireProjectile(ProjectileType ProjectileType)
-{
-	auto ProjectileClass = ProjectileType == ProjectileType::Light ? LightProjectileClass : HeavyProjectileClass;
-	if (ProjectileClass != nullptr)
-	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		SpawnParams.Owner = this;
-
-		FVector SpawnLocation;
-		
-		FVector MeshForwardVector;
-
-		FRotator MeshRotation;
-
-		TArray<UActorComponent*> Mesh = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("PlayerMesh"));
-		if (Mesh.Num() > 0)
-		{
-			auto StaticMeshComponent = Cast<UStaticMeshComponent>(Mesh[0]);
-			SpawnLocation = StaticMeshComponent->GetComponentLocation();
-
-			MeshForwardVector = StaticMeshComponent->GetForwardVector();
-			SpawnLocation += MeshForwardVector * 10.0f;
-
-			MeshRotation = StaticMeshComponent->GetComponentRotation();
-			GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnLocation, MeshRotation, SpawnParams);
-		}
-	}
-}
-
 void ACharacterPawn::Attack(ESpawnableAttack::EType EAttackType)
 {
 	if (AttackMap.Contains(EAttackType))
 	{
-		SpawnAttack(EAttackType, 50.f, EAttackType > ESpawnableAttack::ProjectileHeavy ? MeleeAttackRotatorMap[EAttackType] : FRotator());
+		SpawnAttack(EAttackType, PLAYER_ATTACK_HITBOX_OFFSET, EAttackType > ESpawnableAttack::ProjectileHeavy ? MeleeAttackRotatorMap[EAttackType] : FRotator());
 	}
+}
+
+void ACharacterPawn::ToggleLockOn(bool bActivateLockOn)
+{
+	if (bActivateLockOn)
+	{
+		bIsLockOnActive = true;
+
+		CalculateLockOnTargets(false);
+
+		CurrentLockOnTargetIndex = 0;
+	}
+	else
+	{
+		CurrentLockOnTargetIndex = 0;
+
+		LockOnTargets.Empty();
+
+		bIsLockOnActive = false;
+
+		AdjustCameraForLockOn(GetActorLocation());
+	}
+}
+
+void ACharacterPawn::CycleLockOnTarget()
+{
+	CalculateLockOnTargets(true);
+
+	CurrentLockOnTargetIndex = LockOnTargets.Num() > 0 ? (CurrentLockOnTargetIndex + 1) % LockOnTargets.Num() : 0;
+}
+
+void ACharacterPawn::Dodge(bool bUseLastInputVector)
+{
+	TArray<UActorComponent*> Meshes = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("PlayerMesh"));
+	FVector DirectionVector = bUseLastInputVector
+								? GetLastMovementInputVector()
+								: Meshes.Num() > 0
+									? Cast<UStaticMeshComponent>(Meshes[0])->GetForwardVector()
+									: FVector();
+	CurrentDodgeInfo = FDodgeInfo(GetActorLocation()
+									, bUseLastInputVector ? DodgeDistanceScale : LungeDistanceScale
+									, DirectionVector
+									, 0.0f
+									, bUseLastInputVector ? MaxDodgeTime : MaxLungeTime
+									, bUseLastInputVector);
+
+	bIsDodging = true;
+
+	Cast<APlayerCharacterController>(GetController())->ApplyInputMappingContext(DodgeInputMapping, DODGE_INPUT_MAPPING_PRIORITY, true);
+
+	SetActorEnableCollision(false);
+
+	EnableGravity(false);
+}
+
+void ACharacterPawn::Lunge()
+{
+	Dodge(false);
+
+	Attack(ESpawnableAttack::Lunge);
+}
+
+void ACharacterPawn::CancelLunge()
+{
+	EnableGravity(true);
+
+	SetActorEnableCollision(true);
+
+	Cast<APlayerCharacterController>(GetController())->ApplyInputMappingContext(DodgeInputMapping, DODGE_INPUT_MAPPING_PRIORITY, false);
+
+	bIsDodging = false;
+
+	CurrentDodgeInfo = FDodgeInfo();
+}
+
+float ACharacterPawn::EaseOut(float Time)
+{
+	return 1 <= Time ? 1 : 1 - FMath::Pow(2, -10 * Time);
+}
+
+FVector ACharacterPawn::GetDodgeLocation(FDodgeInfo DodgeInfo)
+{
+	float EaseOutTime = DodgeInfo.ElapsedTime / DodgeInfo.MaxDodgeTime;
+	float EaseOutScale = DodgeInfo.bUseEaseOut ? EaseOut(EaseOutTime) : EaseOutTime;
+	float LocationScale = DodgeInfo.DodgeDistanceScale * EaseOutScale;
+
+	return DodgeInfo.StartLocation + DodgeInfo.TargetDirection * LocationScale;
+}
+
+void ACharacterPawn::ApplyDodge(FDodgeInfo DodgeInfo)
+{
+	FVector NextDodgeLocation = GetDodgeLocation(DodgeInfo);
+	AddMovementInput(NextDodgeLocation);
 }
 
 void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -230,6 +313,46 @@ void ACharacterPawn::OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AAc
 		auto PlayerController = Cast<APlayerCharacterController>(GetController());
 		PlayerController->bIsJumpAvailable = true;
 		PlayerController->bIsMeleeAvailable = true;
+	}
+}
+
+void ACharacterPawn::SetPawnMeshRotator(float Adjacent, float Opposite)
+{
+	float QuadrantValue = 0.0f;
+	if (Adjacent <= 0 && Opposite >= 0)
+	{
+		QuadrantValue = 270.0;
+	}
+	else if (Adjacent <= 0 && Opposite <= 0)
+	{
+		float Temp = Adjacent;
+		Adjacent = Opposite;
+		Opposite = Temp;
+
+		QuadrantValue = 180.0;
+	}
+	else if (Adjacent >= 0 && Opposite <= 0)
+	{
+		QuadrantValue = 90.0;
+	}
+	else
+	{
+		float Temp = Adjacent;
+		Adjacent = Opposite;
+		Opposite = Temp;
+	}
+
+	float Hypoteneuse = FMath::Sqrt(FMath::Square(Adjacent) + FMath::Square(Opposite));
+
+	float Radian = FMath::Asin(FMath::Abs(Opposite) / Hypoteneuse);
+
+	float Degree = Radian * (180 / M_PI) + QuadrantValue;
+
+	TArray<UActorComponent*> Mesh = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("PlayerMesh"));
+	if (Mesh.Num() > 0)
+	{
+		FRotator NewMeshRotation = FRotator(0.0f, Degree, 0.0f);
+		Cast<UStaticMeshComponent>(Mesh[0])->SetRelativeRotation(NewMeshRotation);
 	}
 }
 
@@ -285,5 +408,81 @@ void ACharacterPawn::SpawnAttack(ESpawnableAttack::EType AttackType, float Spawn
 			MeshRotation = StaticMeshComponent->GetComponentRotation();
 			GetWorld()->SpawnActor<AActor>(*AttackClass, SpawnLocation, MeshRotation + Rotator, SpawnParams);
 		}
+	}
+}
+
+void ACharacterPawn::CalculateLockOnTargets(bool bCycleTriggered)
+{
+	FVector ActorLocation = GetActorLocation();
+
+	TMap<AActor*, bool> PreviousLockOnTargetMap;
+
+	TArray<LockOnTargetInfo> PreviousLockOnTargetArray;
+
+	if (bCycleTriggered && LockOnTargets.Num() > 0)
+	{
+		for (int i = 0; i <= CurrentLockOnTargetIndex; i++)
+		{
+			PreviousLockOnTargetMap.Add(LockOnTargets[i].LockOnCandidate, true);
+			
+			PreviousLockOnTargetArray.Add(LockOnTargets[i]);
+		}
+	}
+	
+	LockOnTargets = PreviousLockOnTargetArray;
+
+	TArray<LockOnTargetInfo> NewPotentialLockOnTargets;
+
+	TArray<AActor*> NewPotentialTargets;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName(LOCK_ON_TARGET_TAG), NewPotentialTargets);
+
+	for (AActor* Target : NewPotentialTargets)
+	{
+		if (PreviousLockOnTargetMap.Contains(Target))
+		{
+			continue;
+		}
+
+		FVector TargetLocation = Target->GetActorLocation();
+		float DistanceToTarget = FVector::Dist(TargetLocation, ActorLocation);
+		if (DistanceToTarget <= MaxLockOnDistance)
+		{
+			NewPotentialLockOnTargets.Add(LockOnTargetInfo(Target, TargetLocation));
+		}
+	}
+
+	if (NewPotentialLockOnTargets.Num() < 1)
+	{
+		LockOnTargets = TArray<LockOnTargetInfo>();
+
+		return;
+	}
+
+	NewPotentialLockOnTargets.Sort([ActorLocation](const LockOnTargetInfo& A, const LockOnTargetInfo& B) {
+		float DistanceA = FVector::Dist(A.TargetTransform, ActorLocation);
+
+		float DistanceB = FVector::Dist(B.TargetTransform, ActorLocation);
+		
+		return DistanceA < DistanceB;
+	});
+
+	for (int i = 0; i < NewPotentialLockOnTargets.Num(); i++)
+	{
+		LockOnTargets.Add(NewPotentialLockOnTargets[i]);
+	}
+}
+
+void ACharacterPawn::AdjustCameraForLockOn(FVector TargetLocation)
+{
+	FVector WorldMidpointLocation = (GetActorLocation() + TargetLocation) / 2;
+
+	TArray<UActorComponent*> MeshComponents = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("CameraSwivel"));
+	if (MeshComponents.Num() > 0)
+	{
+		UStaticMeshComponent* CameraSwivel = Cast<UStaticMeshComponent>(MeshComponents[0]);
+		FVector CurrentCameraLocation = CameraSwivel->GetComponentLocation();
+
+		FVector NewCameraLocation = FVector(WorldMidpointLocation.X, WorldMidpointLocation.Y, CurrentCameraLocation.Z);
+		CameraSwivel->SetWorldLocation(NewCameraLocation);
 	}
 }

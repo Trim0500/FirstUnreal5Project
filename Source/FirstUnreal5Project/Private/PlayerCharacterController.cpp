@@ -4,6 +4,9 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "PlayerCharacterController.h"
+#include "Constants.h"
+
+using namespace Functional_Project_Constants;
 
 void APlayerCharacterController::SetupInputComponent()
 {
@@ -11,16 +14,7 @@ void APlayerCharacterController::SetupInputComponent()
 
 	check(InputComponent != nullptr);
 
-	if (ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* InputSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
-		{
-			if (!InputMapping.IsNull())
-			{
-				InputSystem->AddMappingContext(InputMapping.LoadSynchronous(), 1);
-			}
-		}
-	}
+	ApplyInputMappingContext(InputMapping, DEFAULT_INPUT_MAPPING_PRIORITY, true);
 
 	if (UEnhancedInputComponent* EnhancedInputComponenet = Cast<UEnhancedInputComponent>(InputComponent))
 	{
@@ -33,6 +27,11 @@ void APlayerCharacterController::SetupInputComponent()
 		EnhancedInputComponenet->BindAction(MeleeAttackTwo, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseMeleeAttackTwo);
 		EnhancedInputComponenet->BindAction(MeleeAttackThree, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseMeleeAttackThree);
 		EnhancedInputComponenet->BindAction(MeleeAttackFour, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseMeleeAttackFour);
+		EnhancedInputComponenet->BindAction(BeginLockOn, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedBeginLockOn);
+		EnhancedInputComponenet->BindAction(EndLockOn, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedEndLockOn);
+		EnhancedInputComponenet->BindAction(ChangeLockOnTarget, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedChangeLockOnTarget);
+		EnhancedInputComponenet->BindAction(Dodge, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseDodge);
+		EnhancedInputComponenet->BindAction(Lunge, ETriggerEvent::Triggered, this, &APlayerCharacterController::EnhancedUseLunge);
 	}
 }
 
@@ -132,8 +131,90 @@ void APlayerCharacterController::EnhancedUseMeleeAttackFour(const FInputActionVa
 	UseAttack(value, ESpawnableAttack::MeleeFour);
 }
 
+void APlayerCharacterController::EnhancedUseDodge(const FInputActionValue& value)
+{
+	if (EInputActionValueType::Boolean == value.GetValueType())
+	{
+		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
+		if (CharacterPawn != nullptr)
+		{
+			CharacterPawn->Dodge(true);
+		}
+	}
+}
+
+void APlayerCharacterController::EnhancedUseLunge(const FInputActionValue& value)
+{
+	if (EInputActionValueType::Boolean == value.GetValueType())
+	{
+		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
+		if (CharacterPawn != nullptr)
+		{
+			TArray<UActorComponent*> Meshes = CharacterPawn->GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("PlayerMesh"));
+			if (Meshes.Num() > 0)
+			{
+				FVector PlayerMeshForwardVector = Cast<UStaticMeshComponent>(Meshes[0])->GetForwardVector();
+
+				FVector LastPawnInputVector = CharacterPawn->GetLastMovementInputVector();
+				FVector VectorDirectionDifference = LastPawnInputVector - PlayerMeshForwardVector;
+				float absoluteMagnitudeDifference = VectorDirectionDifference.Size2D();
+				if (absoluteMagnitudeDifference <= 0.5)
+				{
+					CharacterPawn->Lunge();
+				}
+				else
+				{
+					CharacterPawn->Attack(ESpawnableAttack::MeleeOne);
+				}
+			}
+		}
+	}
+}
+
+void APlayerCharacterController::EnhancedBeginLockOn(const FInputActionValue& value)
+{
+	if (EInputActionValueType::Boolean == value.GetValueType())
+	{
+		ApplyInputMappingContext(LockOnInputMapping, LOCKON_INPUT_MAPPING_PRIORITY, true);
+
+		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
+		if (CharacterPawn != nullptr)
+		{
+			CharacterPawn->ToggleLockOn(true);
+		}
+	}
+}
+
+void APlayerCharacterController::EnhancedEndLockOn(const FInputActionValue& value)
+{
+	if (EInputActionValueType::Boolean == value.GetValueType())
+	{
+		ApplyInputMappingContext(LockOnInputMapping, LOCKON_INPUT_MAPPING_PRIORITY, false);
+
+		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
+		if (CharacterPawn != nullptr)
+		{
+			CharacterPawn->ToggleLockOn(false);
+		}
+	}
+}
+
+void APlayerCharacterController::EnhancedChangeLockOnTarget(const FInputActionValue& value)
+{
+	if (EInputActionValueType::Boolean == value.GetValueType())
+	{
+		ACharacterPawn* CharacterPawn = Cast<ACharacterPawn>(GetPawn());
+		if (CharacterPawn != nullptr)
+		{
+			CharacterPawn->CycleLockOnTarget();
+		}
+	}
+}
+
 void APlayerCharacterController::ApplyInputMappingContext(TSoftObjectPtr<UInputMappingContext>& _inputMappingContext, int Priority, bool bAddContext)
 {
+	APlayerController::FlushPressedKeys();
+
 	if (ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* InputSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
