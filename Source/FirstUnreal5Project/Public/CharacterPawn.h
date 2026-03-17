@@ -10,16 +10,6 @@
 #include "GameFramework/Pawn.h"
 #include "CharacterPawn.generated.h"
 
-// TODO [PC-06]
-/*
-*	Legacy code for projectiles, can be removed
-*/
-enum ProjectileType
-{
-	Light,
-	Heavy
-};
-
 UENUM(BlueprintType)
 namespace ESpawnableAttack
 {
@@ -54,14 +44,15 @@ struct FDodgeInfo
 	FVector TargetDirection;
 	float ElapsedTime;
 	float MaxDodgeTime;
+	bool bUseEaseOut;
 };
 
-// TODO [PC-06]
-/*
-* 	Add in new struct for array of lock-on targets that the player can cycle through when lock-on is active
-* 
-*	Should be comprised of a reference to the target actor and it's transform in world space
-*/
+struct LockOnTargetInfo
+{
+	AActor* LockOnCandidate;
+
+	FVector TargetTransform;
+};
 
 UCLASS()
 class FIRSTUNREAL5PROJECT_API ACharacterPawn : public APawn
@@ -92,18 +83,6 @@ public:
 	/** Set time value for max dodge time ( in sec ) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
 	float MaxDodgeTime;
-
-	// TODO [PC-06]
-	/*
-	*	Legacy code for projectiles, can be removed
-	*/
-	/** Class reference to light projectile spawner to spawn light projectiles when firing light projectile action is triggered */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Weapons")
-	TSubclassOf<AActor> LightProjectileClass;
-
-	/** Class reference to heavy projectile spawner to spawn heavy projectiles when firing heavy projectile action is triggered */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Weapons")
-	TSubclassOf<AActor> HeavyProjectileClass;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
 	TArray<FAttackInfo> AttackInfoArray;
@@ -142,17 +121,17 @@ public:
 
 	void ApplyJumpToZ(float, float, float);
 
-	void FireProjectile(ProjectileType);
-
 	void Attack(ESpawnableAttack::EType);
 
 	void ToggleLockOn(bool);
 
 	void CycleLockOnTarget();
 
-	void Dodge(FVector);
+	void Dodge(bool);
 
 	void Lunge();
+
+	void CancelLunge();
 
 	UFUNCTION()
 	void OnFeetOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -176,14 +155,13 @@ private:
 
 	TMap<TEnumAsByte<ESpawnableAttack::EType>, FRotator> MeleeAttackRotatorMap;
 
-	// TODO [PC-06]
-	/*
-	*	Add in new private member variable for array of lock-on targets that the player can cycle through when lock-on is active
-	*/
+	TArray<LockOnTargetInfo> LockOnTargets;
 
 	int CurrentLockOnTargetIndex;
 
 	bool bIsLockOnActive;
+
+	void SetPawnMeshRotator(float, float);
 
 	void EnableGravity(bool);
 
@@ -191,15 +169,13 @@ private:
 
 	float EaseOut(float);
 
-	FVector GetDodgeLocation(FDodgeInfo, bool);
+	FVector GetDodgeLocation(FDodgeInfo);
 
 	void ApplyDodge(FDodgeInfo);
 
 	void SpawnAttack(ESpawnableAttack::EType, float, FRotator);
 
-	void ApplyLockOnRotation();
-
 	void CalculateLockOnTargets(bool);
 
-	void AdjustCameraForLockOn();
+	void AdjustCameraForLockOn(FVector);
 };
