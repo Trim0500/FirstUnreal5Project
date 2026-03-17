@@ -10,16 +10,6 @@
 #include "GameFramework/Pawn.h"
 #include "CharacterPawn.generated.h"
 
-// TODO [PC-06]
-/*
-*	Legacy code for projectiles, can be removed
-*/
-enum ProjectileType
-{
-	Light,
-	Heavy
-};
-
 UENUM(BlueprintType)
 namespace ESpawnableAttack
 {
@@ -94,18 +84,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Movement")
 	float MaxDodgeTime;
 
-	// TODO [PC-06]
-	/*
-	*	Legacy code for projectiles, can be removed
-	*/
-	/** Class reference to light projectile spawner to spawn light projectiles when firing light projectile action is triggered */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Weapons")
-	TSubclassOf<AActor> LightProjectileClass;
-
-	/** Class reference to heavy projectile spawner to spawn heavy projectiles when firing heavy projectile action is triggered */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Weapons")
-	TSubclassOf<AActor> HeavyProjectileClass;
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Attacks")
 	TArray<FAttackInfo> AttackInfoArray;
 
@@ -142,8 +120,6 @@ public:
 	void JumpPawn();
 
 	void ApplyJumpToZ(float, float, float);
-
-	void FireProjectile(ProjectileType);
 
 	void Attack(ESpawnableAttack::EType);
 

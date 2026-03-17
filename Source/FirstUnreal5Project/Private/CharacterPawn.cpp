@@ -96,7 +96,7 @@ void ACharacterPawn::Tick(float DeltaTime)
 		}
 	}
 
-	if (bIsLockOnActive)
+	if (bIsLockOnActive && LockOnTargets.Num() > 0)
 	{
 		FVector LockOnTargetLocation = LockOnTargets[CurrentLockOnTargetIndex].TargetTransform;
 		FVector LocationDifference = LockOnTargets[CurrentLockOnTargetIndex].TargetTransform - GetActorLocation();
@@ -195,36 +195,6 @@ void ACharacterPawn::JumpPawn()
 	JumpStartZ = GetActorLocation().Z;
 }
 
-void ACharacterPawn::FireProjectile(ProjectileType ProjectileType)
-{
-	auto ProjectileClass = ProjectileType == ProjectileType::Light ? LightProjectileClass : HeavyProjectileClass;
-	if (ProjectileClass != nullptr)
-	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		SpawnParams.Owner = this;
-
-		FVector SpawnLocation;
-		
-		FVector MeshForwardVector;
-
-		FRotator MeshRotation;
-
-		TArray<UActorComponent*> Mesh = GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("PlayerMesh"));
-		if (Mesh.Num() > 0)
-		{
-			auto StaticMeshComponent = Cast<UStaticMeshComponent>(Mesh[0]);
-			SpawnLocation = StaticMeshComponent->GetComponentLocation();
-
-			MeshForwardVector = StaticMeshComponent->GetForwardVector();
-			SpawnLocation += MeshForwardVector * 10.0f;
-
-			MeshRotation = StaticMeshComponent->GetComponentRotation();
-			GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnLocation, MeshRotation, SpawnParams);
-		}
-	}
-}
-
 void ACharacterPawn::Attack(ESpawnableAttack::EType EAttackType)
 {
 	if (AttackMap.Contains(EAttackType))
@@ -259,7 +229,7 @@ void ACharacterPawn::CycleLockOnTarget()
 {
 	CalculateLockOnTargets(true);
 
-	CurrentLockOnTargetIndex = (CurrentLockOnTargetIndex + 1) % LockOnTargets.Num();
+	CurrentLockOnTargetIndex = LockOnTargets.Num() > 0 ? (CurrentLockOnTargetIndex + 1) % LockOnTargets.Num() : 0;
 }
 
 void ACharacterPawn::Dodge(bool bUseLastInputVector)
@@ -288,23 +258,6 @@ void ACharacterPawn::Dodge(bool bUseLastInputVector)
 
 void ACharacterPawn::Lunge()
 {
-	// TODO [PC-06]
-	/*
-	*	Implement the public API to begin a lunge action in the direction of the current lock-on target
-	* 
-	*	Initialize current lunge info struct with the pawn's mesh forward vector as the direction to lunge in
-	* 
-	*	Set dodge flag to true to trigger lunge movement in Tick function
-	* 
-	*	Make the actor intangible by calling SetActorEnableCollision(false) so that the player can lunge through enemies and other obstacles
-	* 
-	*	Disable gravity during the lunge by calling EnableGravity(false) so that the lunge movement is not affected by gravity
-	* 
-	*	Call Attack passing over the lunge attack type to trigger the lunge attack hitbox to spawn during the lunge movement
-	*		NOTE: The lunge attack hitbox should be set to spawn at the player's location and should move with the player during the lunge movement, so that it can hit enemies that are in the way of the lunge
-	*				This may be acheived by making a subsclass of the attack actor class whereby when its tick function is called, it sets its location to be the same as the player's location
-	*/
-
 	Dodge(false);
 
 	Attack(ESpawnableAttack::Lunge);
@@ -466,7 +419,7 @@ void ACharacterPawn::CalculateLockOnTargets(bool bCycleTriggered)
 
 	TArray<LockOnTargetInfo> PreviousLockOnTargetArray;
 
-	if (bCycleTriggered)
+	if (bCycleTriggered && LockOnTargets.Num() > 0)
 	{
 		for (int i = 0; i <= CurrentLockOnTargetIndex; i++)
 		{
@@ -496,6 +449,13 @@ void ACharacterPawn::CalculateLockOnTargets(bool bCycleTriggered)
 		{
 			NewPotentialLockOnTargets.Add(LockOnTargetInfo(Target, TargetLocation));
 		}
+	}
+
+	if (NewPotentialLockOnTargets.Num() < 1)
+	{
+		LockOnTargets = TArray<LockOnTargetInfo>();
+
+		return;
 	}
 
 	NewPotentialLockOnTargets.Sort([ActorLocation](const LockOnTargetInfo& A, const LockOnTargetInfo& B) {
