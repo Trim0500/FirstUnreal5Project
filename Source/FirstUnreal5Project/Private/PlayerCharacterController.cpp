@@ -160,7 +160,7 @@ void APlayerCharacterController::EnhancedUseLunge(const FInputActionValue& value
 				float absoluteMagnitudeDifference = VectorDirectionDifference.Size2D();
 				if (absoluteMagnitudeDifference <= 0.5)
 				{
-					CharacterPawn->Dodge(false);
+					CharacterPawn->Lunge();
 				}
 				else
 				{

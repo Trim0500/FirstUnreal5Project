@@ -57,6 +57,10 @@ void ACharacterPawn::BeginPlay()
 					MeleeAttackRotatorMap.Add(Info.AttackType, FRotator(0.0f, 0.0f, 180.0f));
 					
 					break;
+				case ESpawnableAttack::Lunge:
+					MeleeAttackRotatorMap.Add(Info.AttackType, FRotator(270.0f, 0.0f, 0.0f));
+
+					break;
 				default:
 					break;
 			}
@@ -84,15 +88,7 @@ void ACharacterPawn::Tick(float DeltaTime)
 		CurrentDodgeInfo.ElapsedTime += DeltaTime;
 		if (CurrentDodgeInfo.ElapsedTime >= CurrentDodgeInfo.MaxDodgeTime)
 		{
-			EnableGravity(true);
-
-			SetActorEnableCollision(true);
-
-			Cast<APlayerCharacterController>(GetController())->ApplyInputMappingContext(DodgeInputMapping, DODGE_INPUT_MAPPING_PRIORITY, false);
-
-			bIsDodging = false;
-
-			CurrentDodgeInfo = FDodgeInfo();
+			CancelLunge();
 		}
 		else
 		{
@@ -233,7 +229,7 @@ void ACharacterPawn::Attack(ESpawnableAttack::EType EAttackType)
 {
 	if (AttackMap.Contains(EAttackType))
 	{
-		SpawnAttack(EAttackType, 50.f, EAttackType > ESpawnableAttack::ProjectileHeavy ? MeleeAttackRotatorMap[EAttackType] : FRotator());
+		SpawnAttack(EAttackType, PLAYER_ATTACK_HITBOX_OFFSET, EAttackType > ESpawnableAttack::ProjectileHeavy ? MeleeAttackRotatorMap[EAttackType] : FRotator());
 	}
 }
 
@@ -308,6 +304,23 @@ void ACharacterPawn::Lunge()
 	*		NOTE: The lunge attack hitbox should be set to spawn at the player's location and should move with the player during the lunge movement, so that it can hit enemies that are in the way of the lunge
 	*				This may be acheived by making a subsclass of the attack actor class whereby when its tick function is called, it sets its location to be the same as the player's location
 	*/
+
+	Dodge(false);
+
+	Attack(ESpawnableAttack::Lunge);
+}
+
+void ACharacterPawn::CancelLunge()
+{
+	EnableGravity(true);
+
+	SetActorEnableCollision(true);
+
+	Cast<APlayerCharacterController>(GetController())->ApplyInputMappingContext(DodgeInputMapping, DODGE_INPUT_MAPPING_PRIORITY, false);
+
+	bIsDodging = false;
+
+	CurrentDodgeInfo = FDodgeInfo();
 }
 
 float ACharacterPawn::EaseOut(float Time)

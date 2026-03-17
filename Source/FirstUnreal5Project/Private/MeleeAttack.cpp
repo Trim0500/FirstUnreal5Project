@@ -1,6 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "Components/CapsuleComponent.h"
+
+#include "Constants.h"
 #include "MeleeAttack.h"
+
+using namespace Functional_Project_Constants;
 
 // Sets default values
 AMeleeAttack::AMeleeAttack()
@@ -33,6 +38,13 @@ void AMeleeAttack::BeginPlay()
 	{
 		PlayerCharacterControllerRef->ApplyInputMappingContext(AttackInputMapping, 2, true);
 	}
+
+	if (UCapsuleComponent* AttackCapsuleComponent = Cast<UCapsuleComponent>(GetComponentByClass(UPrimitiveComponent::StaticClass())))
+	{
+		AttackCapsuleComponent->SetGenerateOverlapEvents(true);
+
+		AttackCapsuleComponent->OnComponentBeginOverlap.AddDynamic(this, &AMeleeAttack::OnAttackOverlapBegin);
+	}
 }
 
 // Called every frame
@@ -46,6 +58,21 @@ void AMeleeAttack::Tick(float DeltaTime)
 	* 
 	*	NOTE: The exact distance in front of the player character ( in cm ) should be a constant value, declared and defined in a global header file
 	*/
+
+	AActor* PlayerAttackOwner = GetOwner();
+	if (ACharacterPawn* Pawn = Cast<ACharacterPawn>(PlayerAttackOwner))
+	{
+		TArray<UActorComponent*> CharacterMeshes = Pawn->GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName(PLAYER_MESH_TAG));
+		if (CharacterMeshes.Num() > 0)
+		{
+			UStaticMeshComponent* Mesh = Cast<UStaticMeshComponent>(CharacterMeshes[0]);
+			FVector MeshForwardVector = Mesh->GetForwardVector();
+			
+			FVector MeshLocation = Mesh->GetComponentLocation();
+			FVector OffsetLocation = MeshLocation + MeshForwardVector * PLAYER_ATTACK_HITBOX_OFFSET;
+			SetActorLocation(OffsetLocation);
+		}
+	}
 
 	TotalFrameTime += DeltaTime;
 
@@ -92,5 +119,16 @@ void AMeleeAttack::Tick(float DeltaTime)
 		SetActorHiddenInGame(false);
 
 		SetActorEnableCollision(true);
+	}
+}
+
+void AMeleeAttack::OnAttackOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	AActor* PlayerAttackOwner = GetOwner();
+	if (ACharacterPawn* Pawn = Cast<ACharacterPawn>(PlayerAttackOwner))
+	{
+		Pawn->CancelLunge();
+
+		Destroy();
 	}
 }
