@@ -22,9 +22,35 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timer Settings")
 	float TimerDuration;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission Settings")
+	int NumWavesToClear;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission Settings")
+	TArray<int> EnemiesPerWave;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission Settings")
+	int MaxNumEnemies;
+
+	bool CanSpawnEnemies();
+
+	void AddEnemy();
+	
 	UFUNCTION()
 	void OnTimerFinished();
 
+	UFUNCTION()
+	void OnBeginMission();
+
+	UFUNCTION()
+	void OnEnemyDefeated();
 private:
 	UTimerComponent* TimerComponent;
+
+	bool bMissionStarted;
+
+	int CurrentNumEnemies;
+
+	int EnemiesDefeatedInWave;
+
+	int WaveNumber;
 };

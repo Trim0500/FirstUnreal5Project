@@ -1,5 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include <math.h>
 
 #include "FirstUnreal5GameModeBase.h"
 
@@ -14,12 +15,66 @@ void AFirstUnreal5GameModeBase::BeginPlay()
 
 	TimerComponent->SetDuration(TimerDuration);
 
-	TimerComponent->Start();
-
 	TimerComponent->TimerFinished.AddDynamic(this, &AFirstUnreal5GameModeBase::OnTimerFinished);
+
+	bMissionStarted = false;
+
+	CurrentNumEnemies = 0;
+
+	EnemiesDefeatedInWave = 0;
+
+	WaveNumber = FMath::Min(NumWavesToClear, 0);
+}
+
+bool AFirstUnreal5GameModeBase::CanSpawnEnemies()
+{
+	return bMissionStarted && CurrentNumEnemies < MaxNumEnemies;
+}
+
+void AFirstUnreal5GameModeBase::AddEnemy()
+{
+	CurrentNumEnemies++;
+
+	/*
+	*	Eventually will have to use a pointer to the enemy character and use the class instance delegate to bind the OnEnemyDefeated function
+	*/
 }
 
 void AFirstUnreal5GameModeBase::OnTimerFinished()
 {
-	UE_LOG(LogTemp, Warning, TEXT("[AFirstUnreal5GameModeBase::OnTimerFinished]: Function called..."));
+	bMissionStarted = false;
+
+	/*
+	*	Eventually will have to expand logic to handle what happens when the timer finishes during a mission, such as ending the mission and showing results
+	*/
+}
+
+void AFirstUnreal5GameModeBase::OnBeginMission()
+{
+	bMissionStarted = true;
+
+	TimerComponent->Start();
+}
+
+void AFirstUnreal5GameModeBase::OnEnemyDefeated()
+{
+	CurrentNumEnemies--;
+
+	EnemiesDefeatedInWave++;
+
+	if (EnemiesPerWave[WaveNumber] <= EnemiesDefeatedInWave)
+	{
+		WaveNumber++;
+
+		EnemiesDefeatedInWave = 0;
+
+		if (WaveNumber >= NumWavesToClear)
+		{
+			bMissionStarted = false;
+
+			/*
+			*	Eventually will have to expand logic to handle what happens when the timer finishes during a mission, such as ending the mission and showing results
+			*/
+		}
+	}
 }
