@@ -30,6 +30,8 @@ public:
 	void SetTickModifier(float);
 
 	void Start();
+	
+	void Stop();
 
 	FTimerFinishedDelegate TimerFinished;
 

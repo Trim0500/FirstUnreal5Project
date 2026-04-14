@@ -73,3 +73,8 @@ void UTimerComponent::Start()
 		ElapsedSeconds = 0;
 	}
 }
+
+void UTimerComponent::Stop()
+{
+	bRunning = false;
+}

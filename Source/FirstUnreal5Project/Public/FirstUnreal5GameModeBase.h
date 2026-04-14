@@ -40,9 +40,16 @@ public:
 
 	UFUNCTION()
 	void OnBeginMission();
+	
+	UFUNCTION()
+	void OnFailMission();
 
 	UFUNCTION()
 	void OnEnemyDefeated();
+
+	UFUNCTION()
+	void OnWorldReady();
+
 private:
 	UTimerComponent* TimerComponent;
 

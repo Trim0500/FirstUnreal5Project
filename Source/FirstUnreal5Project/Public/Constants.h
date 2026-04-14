@@ -17,4 +17,6 @@ namespace Functional_Project_Constants
 	extern const FString LOCK_ON_TARGET_TAG;
 	
 	extern const FString PLAYER_MESH_TAG;
+	
+	extern const FString DEFENCE_OBJECTIVE_TAG;
 }
