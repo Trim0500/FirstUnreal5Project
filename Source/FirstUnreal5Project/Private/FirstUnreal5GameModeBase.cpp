@@ -1,8 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include <math.h>
+#include "Kismet/GameplayStatics.h"
 
+#include "Constants.h"
+#include "DestructibleActor.h"
 #include "FirstUnreal5GameModeBase.h"
+
+using namespace Functional_Project_Constants;
 
 void AFirstUnreal5GameModeBase::BeginPlay()
 {
@@ -24,6 +29,8 @@ void AFirstUnreal5GameModeBase::BeginPlay()
 	EnemiesDefeatedInWave = 0;
 
 	WaveNumber = FMath::Min(NumWavesToClear, 0);
+
+	GetWorld()->OnWorldBeginPlay.AddUObject(this, &AFirstUnreal5GameModeBase::OnWorldReady);
 }
 
 bool AFirstUnreal5GameModeBase::CanSpawnEnemies()
@@ -53,7 +60,24 @@ void AFirstUnreal5GameModeBase::OnBeginMission()
 {
 	bMissionStarted = true;
 
+	CurrentNumEnemies = 0;
+
+	EnemiesDefeatedInWave = 0;
+
+	WaveNumber = FMath::Min(NumWavesToClear, 0);
+
 	TimerComponent->Start();
+}
+
+void AFirstUnreal5GameModeBase::OnFailMission()
+{
+	TimerComponent->Stop();
+
+	bMissionStarted = false;
+
+	/*
+	*	Eventually will have to expand logic to handle what happens when the timer finishes during a mission, such as ending the mission and showing results
+	*/
 }
 
 void AFirstUnreal5GameModeBase::OnEnemyDefeated()
@@ -75,6 +99,22 @@ void AFirstUnreal5GameModeBase::OnEnemyDefeated()
 			/*
 			*	Eventually will have to expand logic to handle what happens when the timer finishes during a mission, such as ending the mission and showing results
 			*/
+		}
+	}
+}
+
+void AFirstUnreal5GameModeBase::OnWorldReady()
+{
+	GetWorld()->OnWorldBeginPlay.RemoveAll(this);
+
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName(DEFENCE_OBJECTIVE_TAG), FoundActors);
+	if (FoundActors.Num() > 0)
+	{
+		ADestructibleActor* DefenceObjective = Cast<ADestructibleActor>(FoundActors[0]);
+		if (DefenceObjective != nullptr)
+		{
+			DefenceObjective->DestroyedDelegate.AddDynamic(this, &AFirstUnreal5GameModeBase::OnFailMission);
 		}
 	}
 }

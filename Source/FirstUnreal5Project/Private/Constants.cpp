@@ -13,4 +13,6 @@ namespace Functional_Project_Constants
 	const FString LOCK_ON_TARGET_TAG = "LockOnTarget";
 	
 	const FString PLAYER_MESH_TAG = "PlayerMesh";
+
+	const FString DEFENCE_OBJECTIVE_TAG = "DefenceObjective";
 }
