@@ -33,6 +33,7 @@ public:
 
 	bool CanSpawnEnemies();
 
+	UFUNCTION()
 	void AddEnemy();
 	
 	UFUNCTION()

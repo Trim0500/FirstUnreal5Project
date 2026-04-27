@@ -15,4 +15,6 @@ namespace Functional_Project_Constants
 	const FString PLAYER_MESH_TAG = "PlayerMesh";
 
 	const FString DEFENCE_OBJECTIVE_TAG = "DefenceObjective";
+
+	const FString SPAWNER_TAG = "Spawner";
 }

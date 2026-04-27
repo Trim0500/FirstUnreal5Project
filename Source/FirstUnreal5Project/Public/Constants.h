@@ -19,4 +19,6 @@ namespace Functional_Project_Constants
 	extern const FString PLAYER_MESH_TAG;
 	
 	extern const FString DEFENCE_OBJECTIVE_TAG;
+
+	extern const FString SPAWNER_TAG;
 }

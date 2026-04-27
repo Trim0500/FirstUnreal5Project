@@ -5,6 +5,7 @@
 
 #include "Constants.h"
 #include "DestructibleActor.h"
+#include "DestructibleActorSpawner.h"
 #include "FirstUnreal5GameModeBase.h"
 
 using namespace Functional_Project_Constants;
@@ -40,6 +41,8 @@ bool AFirstUnreal5GameModeBase::CanSpawnEnemies()
 
 void AFirstUnreal5GameModeBase::AddEnemy()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[AFirstUnreal5GameModeBase::AddEnemy]: Function called..."));
+
 	CurrentNumEnemies++;
 
 	/*
@@ -117,4 +120,22 @@ void AFirstUnreal5GameModeBase::OnWorldReady()
 			DefenceObjective->DestroyedDelegate.AddDynamic(this, &AFirstUnreal5GameModeBase::OnFailMission);
 		}
 	}
+
+	FoundActors.Empty();
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName(SPAWNER_TAG), FoundActors);
+	if (FoundActors.Num() > 0)
+	{
+		for (int i = 0; i < FoundActors.Num(); i++)
+		{
+			ADestructibleActorSpawner* Spawner = Cast<ADestructibleActorSpawner>(FoundActors[i]);
+			if (Spawner != nullptr)
+			{
+				Spawner->Activate(true);
+
+				Spawner->SpawnedActorDelegate.AddDynamic(this, &AFirstUnreal5GameModeBase::AddEnemy);
+			}
+		}
+	}
+
+	OnBeginMission();
 }
