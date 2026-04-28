@@ -39,15 +39,14 @@ bool AFirstUnreal5GameModeBase::CanSpawnEnemies()
 	return bMissionStarted && CurrentNumEnemies < MaxNumEnemies;
 }
 
-void AFirstUnreal5GameModeBase::AddEnemy()
+void AFirstUnreal5GameModeBase::OnSpawnerAddEnemy(ADestructibleActor* SpawnedActorPtr)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[AFirstUnreal5GameModeBase::AddEnemy]: Function called..."));
-
 	CurrentNumEnemies++;
 
 	/*
 	*	Eventually will have to use a pointer to the enemy character and use the class instance delegate to bind the OnEnemyDefeated function
 	*/
+	SpawnedActorPtr->DestroyedDelegate.AddDynamic(this, &AFirstUnreal5GameModeBase::OnEnemyDefeated);
 }
 
 void AFirstUnreal5GameModeBase::OnTimerFinished()
@@ -85,18 +84,24 @@ void AFirstUnreal5GameModeBase::OnFailMission()
 
 void AFirstUnreal5GameModeBase::OnEnemyDefeated()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[AFirstUnreal5GameModeBase::OnEnemyDefeated]: Function called..."));
+
 	CurrentNumEnemies--;
 
 	EnemiesDefeatedInWave++;
 
 	if (EnemiesPerWave[WaveNumber] <= EnemiesDefeatedInWave)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[AFirstUnreal5GameModeBase::OnEnemyDefeated]: All enemies in the current wave cleared!"));
+
 		WaveNumber++;
 
 		EnemiesDefeatedInWave = 0;
 
 		if (WaveNumber >= NumWavesToClear)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("[AFirstUnreal5GameModeBase::OnEnemyDefeated]: All waves cleared! Mission Accomplished!"));
+
 			bMissionStarted = false;
 
 			/*
@@ -132,7 +137,7 @@ void AFirstUnreal5GameModeBase::OnWorldReady()
 			{
 				Spawner->Activate(true);
 
-				Spawner->SpawnedActorDelegate.AddDynamic(this, &AFirstUnreal5GameModeBase::AddEnemy);
+				Spawner->SpawnedActorDelegate.AddDynamic(this, &AFirstUnreal5GameModeBase::OnSpawnerAddEnemy);
 			}
 		}
 	}

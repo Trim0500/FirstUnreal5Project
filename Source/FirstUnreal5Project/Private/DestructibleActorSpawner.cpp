@@ -48,7 +48,7 @@ void ADestructibleActorSpawner::Tick(float DeltaTime)
 		ADestructibleActor* SpawnedActor = GetWorld()->SpawnActor<ADestructibleActor>(SpawnedActorClass.Get(), GetActorLocation(), FRotator(), SpawnParams);
 		SpawnedActor->DestroyedDelegate.AddDynamic(this, &ADestructibleActorSpawner::OnSpawnedActorDestroyed);
 
-		SpawnedActorDelegate.Broadcast();
+		SpawnedActorDelegate.Broadcast(SpawnedActor);
 
 		SpawnedActors++;
 		if (SpawnedActors >= MaxSpawnedActors)

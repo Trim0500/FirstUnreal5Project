@@ -8,7 +8,7 @@
 #include "GameFramework/Actor.h"
 #include "DestructibleActorSpawner.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSpawnedActorDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSpawnedActorDelegate, ADestructibleActor*, SpawnedActor);
 
 UCLASS()
 class FIRSTUNREAL5PROJECT_API ADestructibleActorSpawner : public AActor
