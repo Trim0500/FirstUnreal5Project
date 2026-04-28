@@ -7,9 +7,7 @@
 // Sets default values
 ADestructibleActorSpawner::ADestructibleActorSpawner()
 {
-	UE_LOG(LogTemp, Warning, TEXT("[ADestructibleActorSpawner::ADestructibleActorSpawner]: Function called..."));
-
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 }
@@ -17,8 +15,6 @@ ADestructibleActorSpawner::ADestructibleActorSpawner()
 // Called when the game starts or when spawned
 void ADestructibleActorSpawner::BeginPlay()
 {
-	UE_LOG(LogTemp, Warning, TEXT("[ADestructibleActorSpawner::BeginPlay]: Function called..."));
-
 	Super::BeginPlay();
 	
 	ElaspedSeconds = 0.0f;
@@ -37,8 +33,6 @@ void ADestructibleActorSpawner::Tick(float DeltaTime)
 	bool bCanSpawn = GameMode->CanSpawnEnemies();
 	if (!bCanSpawn)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ADestructibleActorSpawner::Tick]: According to the game mode, spawning is not allowed for now..."));
-
 		Activate(false);
 
 		return;
@@ -61,33 +55,27 @@ void ADestructibleActorSpawner::Tick(float DeltaTime)
 		{
 			Activate(false);
 		}
+
+		ElaspedSeconds = 0.0f;
 	}
 }
 
 void ADestructibleActorSpawner::Activate(bool bActivate)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[ADestructibleActorSpawner::Activate]: Function called..."));
-
 	bActivated = bActivate;
 	SetActorTickEnabled(bActivated);
 	
 	if (!bActivated)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ADestructibleActorSpawner::Activate]: Spawner deactivated, elapsed seconds reset..."));
-
 		ElaspedSeconds = 0.0f;
 	}
 }
 
 void ADestructibleActorSpawner::OnSpawnedActorDestroyed()
 {
-	UE_LOG(LogTemp, Warning, TEXT("[ADestructibleActorSpawner::OnSpawnedActorDestroyed]: Function called..."));
-
 	SpawnedActors--;
 	if (SpawnedActors < MaxSpawnedActors)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ADestructibleActorSpawner::OnSpawnedActorDestroyed]: Spawner reactivated, elapsed seconds reset..."));
-
 		Activate(true);
 	}
 }
