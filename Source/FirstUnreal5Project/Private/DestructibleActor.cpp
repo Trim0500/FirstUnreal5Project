@@ -15,7 +15,12 @@ ADestructibleActor::ADestructibleActor()
 void ADestructibleActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	auto StaticMeshComponent = FindComponentByClass<UStaticMeshComponent>();
+	if (StaticMeshComponent != nullptr)
+	{
+		StaticMeshComponent->OnComponentHit.AddDynamic(this, &ADestructibleActor::OnHitDetected);
+	}
 }
 
 // Called every frame
@@ -25,11 +30,21 @@ void ADestructibleActor::Tick(float DeltaTime)
 
 }
 
+void ADestructibleActor::OnHitDetected(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	TakeDamage(10.0f);
+}
+
 void ADestructibleActor::TakeDamage(float DamageAmount)
 {
 	if (bIsInvincible)
 	{
 		return;
+	}
+
+	if (!bIsInvincible)
+	{
+		bIsInvincible = true;
 	}
 
 	Health -= DamageAmount;
@@ -39,8 +54,6 @@ void ADestructibleActor::TakeDamage(float DamageAmount)
 
 		return;
 	}
-
-	bIsInvincible = true;
 
 	GetWorld()->GetTimerManager().SetTimer(InvincibilityTimerHandle, this, &ADestructibleActor::ResetInvincibility, InvincibilityDuration, false);
 }

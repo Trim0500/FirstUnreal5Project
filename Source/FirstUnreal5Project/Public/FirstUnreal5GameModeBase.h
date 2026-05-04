@@ -33,7 +33,8 @@ public:
 
 	bool CanSpawnEnemies();
 
-	void AddEnemy();
+	UFUNCTION()
+	void OnSpawnerAddEnemy(ADestructibleActor* SpawnedActor);
 	
 	UFUNCTION()
 	void OnTimerFinished();

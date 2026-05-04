@@ -5,6 +5,7 @@
 
 #include "Constants.h"
 #include "DestructibleActor.h"
+#include "DestructibleActorSpawner.h"
 #include "FirstUnreal5GameModeBase.h"
 
 using namespace Functional_Project_Constants;
@@ -38,13 +39,14 @@ bool AFirstUnreal5GameModeBase::CanSpawnEnemies()
 	return bMissionStarted && CurrentNumEnemies < MaxNumEnemies;
 }
 
-void AFirstUnreal5GameModeBase::AddEnemy()
+void AFirstUnreal5GameModeBase::OnSpawnerAddEnemy(ADestructibleActor* SpawnedActorPtr)
 {
 	CurrentNumEnemies++;
 
 	/*
 	*	Eventually will have to use a pointer to the enemy character and use the class instance delegate to bind the OnEnemyDefeated function
 	*/
+	SpawnedActorPtr->DestroyedDelegate.AddDynamic(this, &AFirstUnreal5GameModeBase::OnEnemyDefeated);
 }
 
 void AFirstUnreal5GameModeBase::OnTimerFinished()
@@ -82,18 +84,24 @@ void AFirstUnreal5GameModeBase::OnFailMission()
 
 void AFirstUnreal5GameModeBase::OnEnemyDefeated()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[AFirstUnreal5GameModeBase::OnEnemyDefeated]: Function called..."));
+
 	CurrentNumEnemies--;
 
 	EnemiesDefeatedInWave++;
 
 	if (EnemiesPerWave[WaveNumber] <= EnemiesDefeatedInWave)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[AFirstUnreal5GameModeBase::OnEnemyDefeated]: All enemies in the current wave cleared!"));
+
 		WaveNumber++;
 
 		EnemiesDefeatedInWave = 0;
 
 		if (WaveNumber >= NumWavesToClear)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("[AFirstUnreal5GameModeBase::OnEnemyDefeated]: All waves cleared! Mission Accomplished!"));
+
 			bMissionStarted = false;
 
 			/*
@@ -117,4 +125,22 @@ void AFirstUnreal5GameModeBase::OnWorldReady()
 			DefenceObjective->DestroyedDelegate.AddDynamic(this, &AFirstUnreal5GameModeBase::OnFailMission);
 		}
 	}
+
+	FoundActors.Empty();
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName(SPAWNER_TAG), FoundActors);
+	if (FoundActors.Num() > 0)
+	{
+		for (int i = 0; i < FoundActors.Num(); i++)
+		{
+			ADestructibleActorSpawner* Spawner = Cast<ADestructibleActorSpawner>(FoundActors[i]);
+			if (Spawner != nullptr)
+			{
+				Spawner->Activate(true);
+
+				Spawner->SpawnedActorDelegate.AddDynamic(this, &AFirstUnreal5GameModeBase::OnSpawnerAddEnemy);
+			}
+		}
+	}
+
+	OnBeginMission();
 }
