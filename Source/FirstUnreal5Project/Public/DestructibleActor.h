@@ -14,9 +14,11 @@ class FIRSTUNREAL5PROJECT_API ADestructibleActor : public AActor
 	GENERATED_BODY()
 	
 public:	
+	/** The HP of the actor ( in whole numbers ) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Destructible Properties")
 	float Health;
 
+	/** The duration for which the actor is invincible after taking damage ( in sec ) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Destructible Properties")
 	float InvincibilityDuration;
 
@@ -24,6 +26,9 @@ public:
 
 	// Sets default values for this actor's properties
 	ADestructibleActor();
+
+	UFUNCTION()
+	void OnHitDetected(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	void TakeDamage(float DamageAmount);
 
