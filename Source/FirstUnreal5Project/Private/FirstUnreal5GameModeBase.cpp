@@ -88,6 +88,8 @@ void AFirstUnreal5GameModeBase::OnEnemyDefeated()
 
 	CurrentNumEnemies--;
 
+	ReactivateSpawners(true);
+
 	EnemiesDefeatedInWave++;
 
 	if (EnemiesPerWave[WaveNumber] <= EnemiesDefeatedInWave)
@@ -126,7 +128,14 @@ void AFirstUnreal5GameModeBase::OnWorldReady()
 		}
 	}
 
-	FoundActors.Empty();
+	ReactivateSpawners(true);
+
+	OnBeginMission();
+}
+
+void AFirstUnreal5GameModeBase::ReactivateSpawners(bool bActivate)
+{
+	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName(SPAWNER_TAG), FoundActors);
 	if (FoundActors.Num() > 0)
 	{
@@ -135,12 +144,14 @@ void AFirstUnreal5GameModeBase::OnWorldReady()
 			ADestructibleActorSpawner* Spawner = Cast<ADestructibleActorSpawner>(FoundActors[i]);
 			if (Spawner != nullptr)
 			{
-				Spawner->Activate(true);
+				Spawner->Activate(bActivate);
 
-				Spawner->SpawnedActorDelegate.AddDynamic(this, &AFirstUnreal5GameModeBase::OnSpawnerAddEnemy);
+				if (bActivate)
+				{
+					Spawner->SpawnedActorDelegate.RemoveAll(this);
+					Spawner->SpawnedActorDelegate.AddDynamic(this, &AFirstUnreal5GameModeBase::OnSpawnerAddEnemy);
+				}
 			}
 		}
 	}
-
-	OnBeginMission();
 }

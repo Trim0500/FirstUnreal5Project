@@ -45,6 +45,15 @@ void ADestructibleActorSpawner::Tick(float DeltaTime)
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		SpawnParams.Owner = this;
 
+		if (!SpawnedActorClass.IsValid())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[ADestructibleActorSpawner::Tick]: WARNING Spawned actor class is not valid..."));
+
+			ElaspedSeconds = 0.0f;
+
+			return;
+		}
+
 		ADestructibleActor* SpawnedActor = GetWorld()->SpawnActor<ADestructibleActor>(SpawnedActorClass.Get(), GetActorLocation(), FRotator(), SpawnParams);
 		SpawnedActor->DestroyedDelegate.AddDynamic(this, &ADestructibleActorSpawner::OnSpawnedActorDestroyed);
 

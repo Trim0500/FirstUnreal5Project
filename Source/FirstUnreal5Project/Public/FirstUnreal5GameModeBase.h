@@ -61,4 +61,6 @@ private:
 	int EnemiesDefeatedInWave;
 
 	int WaveNumber;
+
+	void ReactivateSpawners(bool);
 };
